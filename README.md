@@ -10,8 +10,8 @@
 
 | 站點 | 說明 | 預覽連結 |
 |------|------|----------|
-| **大廳站** | 外送員投件 / 快遞員取件流程 | [點擊查看](https://raw.githack.com/phileiny/auro_box/main/html/lobby_station_v31.html) |
-| **樓層站** | 住戶取件 / 住戶寄件流程 | [點擊查看](https://raw.githack.com/phileiny/auro_box/main/html/floor_station_v31.html) |
+| **大廳站** | 外送員投件 / 快遞員取件流程 | [點擊查看](https://phileiny.github.io/auro_box/html/lobby_station_v31.html) |
+| **樓層站** | 住戶取件 / 住戶寄件流程 | [點擊查看](https://phileiny.github.io/auro_box/html/floor_station_v31.html) |
 
 ---
 
