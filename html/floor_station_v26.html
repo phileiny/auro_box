@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>樓層中轉站收貨流程 v2.6</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: linear-gradient(135deg, #1a0a1a 0%, #2a1a3e 50%, #1f1060 100%);
+            min-height: 100vh;
+            padding: 40px;
+            color: #fff;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #ff6b6b, #feca57);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .version {
+            color: #feca57;
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            color: #8892b0;
+            font-size: 1.2rem;
+        }
+        
+        .highlight-box {
+            background: rgba(254, 202, 87, 0.1);
+            border: 1px solid #feca57;
+            border-radius: 10px;
+            padding: 15px 25px;
+            display: inline-block;
+            margin-top: 15px;
+        }
+        
+        .highlight-box span {
+            color: #feca57;
+            font-weight: 700;
+        }
+        
+        .flow-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .step {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            padding: 25px 30px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            gap: 35px;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .step:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(255, 107, 107, 0.15);
+        }
+        
+        .step-number {
+            width: 55px;
+            height: 55px;
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1a0a1a;
+            flex-shrink: 0;
+        }
+        
+        .step-content {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        .step-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: #ff6b6b;
+        }
+        
+        .step-desc {
+            color: #8892b0;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+        
+        .shared-badge {
+            background: #00d9ff;
+            color: #1a0a1a;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        
+        .v26-badge {
+            background: #feca57;
+            color: #1a0a1a;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        
+        .diagram {
+            width: 520px;
+            height: 220px;
+            flex-shrink: 0;
+        }
+        
+        /* SVG Styles */
+        .package { fill: #ff6b6b; }
+        .station { fill: #2a1a3a; stroke: #ff6b6b; stroke-width: 2; }
+        .cabinet { fill: #3a2a4a; stroke: #6a5a7a; stroke-width: 1.5; }
+        .cabinet-target { fill: #4a3a5a; stroke: #feca57; stroke-width: 2; }
+        .elevator-platform { fill: #4a3a5a; stroke: #feca57; stroke-width: 2; }
+        .belt { fill: #5a4a6a; }
+        .amr-body { fill: #2a1a3a; stroke: #00d9ff; stroke-width: 2; }
+        .amr-cabin { fill: #3a4a5a; stroke: #feca57; stroke-width: 2; }
+        .amr-door { fill: #feca57; }
+        .guide-rail { fill: #5a4a6a; }
+        .wall { fill: #1a0a1a; stroke: #3a2a4a; stroke-width: 2; }
+        .output-port { fill: #00ff88; opacity: 0.8; }
+        .person { fill: #00d9ff; }
+        
+        /* Step 1: AMR 到達，側門對接 */
+        @keyframes amrArrive1 {
+            0% { transform: translateX(80px); }
+            40%, 100% { transform: translateX(0); }
+        }
+        
+        @keyframes sideDoorOpen1 {
+            0%, 40% { transform: translateY(0); }
+            60%, 100% { transform: translateY(-25px); }
+        }
+        
+        #step1 .amr-group {
+            animation: amrArrive1 4s ease-out infinite;
+        }
+        
+        #step1 .amr-door {
+            animation: sideDoorOpen1 4s ease-out infinite;
+        }
+        
+        /* Step 2: 皮帶轉移到收貨口 */
+        @keyframes packageOut2 {
+            0%, 25% { transform: translateX(0); }
+            55%, 80% { transform: translateX(-100px); }
+            95%, 100% { transform: translateX(-100px); }
+        }
+        
+        #step2 .package {
+            animation: packageOut2 4s ease-in-out infinite;
+        }
+        
+        /* Step 3: 升降機接收上升 */
+        @keyframes elevatorUp3 {
+            0%, 20% { transform: translateY(0); }
+            50%, 75% { transform: translateY(-55px); }
+            95%, 100% { transform: translateY(-55px); }
+        }
+        
+        #step3 .elevator-group {
+            animation: elevatorUp3 4.5s ease-in-out infinite;
+        }
+        
+        /* Step 4: 送入暫存格，升降機去取貨口 */
+        @keyframes packageToStorage {
+            0%, 25% { transform: translate(0, 0); opacity: 1; }
+            50%, 70% { transform: translate(70px, 0); opacity: 1; }
+            85%, 100% { transform: translate(70px, 0); opacity: 0.3; }
+        }
+        
+        @keyframes elevatorToOutput {
+            0%, 55% { transform: translateY(-55px); }
+            80%, 100% { transform: translateY(0); }
+        }
+        
+        #step4 .package {
+            animation: packageToStorage 5s ease-in-out infinite;
+        }
+        
+        #step4 .elevator-group {
+            animation: elevatorToOutput 5s ease-in-out infinite;
+        }
+        
+        /* Step 5: 住戶從統一取貨口取件 */
+        @keyframes outputDoorOpen {
+            0%, 20% { transform: rotate(0deg); }
+            40%, 70% { transform: rotate(75deg); }
+            90%, 100% { transform: rotate(0deg); }
+        }
+        
+        @keyframes packageOut5 {
+            0%, 45% { transform: translateX(0); opacity: 1; }
+            75%, 100% { transform: translateX(-50px); opacity: 0; }
+        }
+        
+        #step5 .output-door {
+            transform-origin: 85px 105px;
+            animation: outputDoorOpen 4s ease-in-out infinite;
+        }
+        
+        #step5 .package {
+            animation: packageOut5 4s ease-in-out infinite;
+        }
+        
+        .arrow {
+            fill: none;
+            stroke: #feca57;
+            stroke-width: 2;
+            stroke-dasharray: 5, 3;
+        }
+        
+        .label {
+            font-size: 10px;
+            fill: #7a6a8a;
+        }
+        
+        .highlight-label {
+            font-size: 11px;
+            fill: #feca57;
+            font-weight: 500;
+        }
+        
+        .dimension {
+            font-size: 9px;
+            fill: #ff6b6b;
+        }
+        
+        .cabin-label {
+            font-size: 10px;
+            fill: #feca57;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="version">v2.6</div>
+            <h1>🏠 樓層中轉站收貨流程</h1>
+            <p class="subtitle">AMR 側門對接 → 升降機分配 → 暫存櫃格 → 統一取貨口</p>
+            <div class="highlight-box">
+                <span>✨ v2.6 新設計：</span> 統一取貨口（住戶不需找格子，5秒取件）
+            </div>
+        </div>
+        
+        <div class="flow-container">
+            <!-- Step 1: AMR 到達，側門對接 -->
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <div class="step-title">AMR 到達 → 側門開啟 <span class="v26-badge">封閉艙體</span></div>
+                    <div class="step-desc">AMR 封閉艙體到達樓層中轉站，<strong>側門自動開啟</strong>對接收貨口。<br>艙體高度 65cm 與收貨口對齊，水平轉移。</div>
+                </div>
+                <svg class="diagram" id="step1" viewBox="0 0 520 220">
+                    <!-- 牆面 -->
+                    <rect class="wall" x="10" y="20" width="20" height="180"/>
+                    <!-- 中轉站外殼 -->
+                    <rect class="station" x="30" y="30" width="180" height="160" rx="8"/>
+                    <!-- 櫃格區 -->
+                    <rect class="cabinet" x="110" y="45" width="45" height="35" rx="3"/>
+                    <rect class="cabinet" x="160" y="45" width="45" height="35" rx="3"/>
+                    <rect class="cabinet" x="110" y="85" width="65" height="45" rx="3"/>
+                    <text class="label" x="125" y="67">S</text>
+                    <text class="label" x="175" y="67">M</text>
+                    <text class="label" x="132" y="112">L</text>
+                    <!-- 升降機區 -->
+                    <rect x="40" y="50" width="60" height="85" rx="3" fill="none" stroke="#feca57" stroke-width="1" stroke-dasharray="3,2"/>
+                    <text class="label" x="50" y="98">升降機</text>
+                    <!-- 收貨皮帶 -->
+                    <rect class="belt" x="40" y="145" width="160" height="12" rx="2"/>
+                    <text class="highlight-label" x="85" y="143">收貨口</text>
+                    <!-- 高度標示 -->
+                    <line x1="215" y1="151" x2="215" y2="200" stroke="#ff6b6b" stroke-width="1" stroke-dasharray="3,2"/>
+                    <text class="dimension" x="220" y="180">65cm</text>
+                    <!-- AMR 封閉艙體 -->
+                    <g class="amr-group">
+                        <rect class="amr-body" x="280" y="110" width="120" height="75" rx="10"/>
+                        <!-- 封閉艙體 -->
+                        <rect class="amr-cabin" x="290" y="85" width="100" height="55" rx="8"/>
+                        <text class="cabin-label" x="310" y="105">封閉艙體</text>
+                        <!-- 包裹在艙體內 -->
+                        <rect class="package" x="320" y="100" width="35" height="25" rx="4"/>
+                        <!-- 側門 -->
+                        <rect class="amr-door" x="290" y="108" width="8" height="30" rx="2"/>
+                        <!-- 內部皮帶 -->
+                        <rect class="belt" x="305" y="118" width="75" height="8" rx="2"/>
+                        <!-- 輪子 -->
+                        <circle cx="305" cy="190" r="9" fill="#2a1a3a" stroke="#00d9ff" stroke-width="2"/>
+                        <circle cx="375" cy="190" r="9" fill="#2a1a3a" stroke="#00d9ff" stroke-width="2"/>
+                    </g>
+                    <!-- 對接標示 -->
+                    <path class="arrow" d="M 260 151 L 280 151"/>
+                    <text class="dimension" x="235" y="140">側門對接</text>
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#feca57"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+            
+            <!-- Step 2: 皮帶轉移 -->
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <div class="step-title">雙向皮帶 → 包裹轉移</div>
+                    <div class="step-desc">AMR 艙體內皮帶<strong>推出</strong>，中轉站收貨口皮帶<strong>拉入</strong>。<br>雙方皮帶配合，包裹從封閉艙體水平轉移到升降機平台。</div>
+                </div>
+                <svg class="diagram" id="step2" viewBox="0 0 520 220">
+                    <!-- 牆面 -->
+                    <rect class="wall" x="10" y="20" width="20" height="180"/>
+                    <!-- 中轉站 -->
+                    <rect class="station" x="30" y="30" width="180" height="160" rx="8"/>
+                    <!-- 升降機位置 -->
+                    <rect x="40" y="60" width="60" height="70" rx="3" fill="none" stroke="#feca57" stroke-width="1" stroke-dasharray="3,2"/>
+                    <text class="label" x="52" y="100">升降機</text>
+                    <!-- 收貨皮帶 -->
+                    <rect class="belt" x="40" y="140" width="150" height="12" rx="2"/>
+                    <text class="label" x="70" y="138">◄◄◄ 拉入</text>
+                    <!-- AMR 封閉艙體 -->
+                    <rect class="amr-body" x="270" y="105" width="120" height="75" rx="10"/>
+                    <rect class="amr-cabin" x="280" y="80" width="100" height="55" rx="8"/>
+                    <rect class="belt" x="295" y="115" width="75" height="8" rx="2"/>
+                    <text class="label" x="305" y="113">推出 ►►►</text>
+                    <!-- 側門開啟狀態 -->
+                    <rect class="amr-door" x="280" y="78" width="8" height="30" rx="2"/>
+                    <!-- 包裹移動 -->
+                    <rect class="package" x="315" y="97" width="35" height="25" rx="4"/>
+                    <!-- 輪子 -->
+                    <circle cx="295" cy="185" r="9" fill="#2a1a3a" stroke="#00d9ff" stroke-width="2"/>
+                    <circle cx="365" cy="185" r="9" fill="#2a1a3a" stroke="#00d9ff" stroke-width="2"/>
+                    <!-- 標示 -->
+                    <text class="highlight-label" x="300" y="170">AMR</text>
+                    <!-- 間隙 -->
+                    <line x1="195" y1="146" x2="265" y2="146" stroke="#feca57" stroke-width="1" stroke-dasharray="2,2"/>
+                    <!-- 特點 -->
+                    <g transform="translate(420, 50)">
+                        <rect x="0" y="0" width="80" height="60" rx="6" fill="rgba(254,202,87,0.1)" stroke="#feca57" stroke-width="1"/>
+                        <text x="10" y="18" font-size="9" fill="#feca57">水平轉移</text>
+                        <text x="10" y="35" font-size="8" fill="#8892b0">✓ 不摔落</text>
+                        <text x="10" y="50" font-size="8" fill="#8892b0">✓ 食品安全</text>
+                    </g>
+                </svg>
+            </div>
+            
+            <!-- Step 3: 升降機接收上升 -->
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <div class="step-title">升降機接收 → 上升 <span class="shared-badge">共用模組</span></div>
+                    <div class="step-desc">包裹進入升降機平台，升降機<strong>垂直上升</strong>到目標暫存櫃格高度。<br>速度 20cm/s，平穩可控，全程水平不摔落。</div>
+                </div>
+                <svg class="diagram" id="step3" viewBox="0 0 520 220">
+                    <!-- 牆面 -->
+                    <rect class="wall" x="10" y="15" width="20" height="190"/>
+                    <!-- 中轉站側視 -->
+                    <rect class="station" x="30" y="20" width="210" height="185" rx="8"/>
+                    <!-- 櫃格 -->
+                    <rect class="cabinet" x="140" y="35" width="55" height="40" rx="3"/>
+                    <rect class="cabinet" x="140" y="80" width="55" height="50" rx="3"/>
+                    <text class="label" x="158" y="60">S</text>
+                    <text class="label" x="158" y="110">L</text>
+                    <!-- 統一取貨口 -->
+                    <rect class="output-port" x="200" y="145" width="30" height="40" rx="3"/>
+                    <text class="label" x="200" y="200" fill="#00ff88">取貨口</text>
+                    <!-- 升降機軌道 -->
+                    <rect class="guide-rail" x="50" y="35" width="8" height="155" rx="2"/>
+                    <rect class="guide-rail" x="115" y="35" width="8" height="155" rx="2"/>
+                    <!-- 升降機平台 -->
+                    <g class="elevator-group">
+                        <rect class="elevator-platform" x="45" y="155" width="85" height="18" rx="3"/>
+                        <rect class="belt" x="50" y="159" width="75" height="8" rx="2"/>
+                        <text class="dimension" x="70" y="166">►►►</text>
+                        <rect class="package" x="60" y="138" width="35" height="25" rx="4"/>
+                    </g>
+                    <!-- 收貨皮帶 -->
+                    <rect class="belt" x="45" y="180" width="100" height="10" rx="2"/>
+                    <text class="label" x="65" y="208">收貨口</text>
+                    <!-- 箭頭 -->
+                    <path d="M 88 150 L 88 100" stroke="#feca57" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <text class="dimension" x="95" y="125">上升</text>
+                    <!-- 特點 -->
+                    <g transform="translate(290, 40)">
+                        <rect x="0" y="0" width="150" height="100" rx="8" fill="rgba(254,202,87,0.1)" stroke="#feca57" stroke-width="1"/>
+                        <text x="15" y="22" font-size="10" fill="#feca57">升降機模組（共用）</text>
+                        <text x="15" y="42" font-size="9" fill="#8892b0">✓ 與大廳站同款</text>
+                        <text x="15" y="58" font-size="9" fill="#8892b0">✓ 垂直升降 20cm/s</text>
+                        <text x="15" y="74" font-size="9" fill="#8892b0">✓ 行程 60cm</text>
+                        <text x="15" y="90" font-size="9" fill="#ff6b6b">✓ 全程水平</text>
+                    </g>
+                </svg>
+            </div>
+            
+            <!-- Step 4: 送入暫存格，通知住戶 -->
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <div class="step-title">暫存櫃格 → LINE 通知</div>
+                    <div class="step-desc">升降機到達目標高度，皮帶將包裹<strong>水平送入</strong>暫存櫃格。<br>系統發送 <strong>LINE 通知</strong>給住戶：「包裹已送達，請至統一取貨口取件」。</div>
+                </div>
+                <svg class="diagram" id="step4" viewBox="0 0 520 220">
+                    <!-- 牆面 -->
+                    <rect class="wall" x="10" y="15" width="20" height="190"/>
+                    <!-- 中轉站 -->
+                    <rect class="station" x="30" y="20" width="210" height="185" rx="8"/>
+                    <!-- 目標櫃格（高亮）-->
+                    <rect class="cabinet-target" x="140" y="80" width="80" height="50" rx="3"/>
+                    <rect class="cabinet" x="140" y="35" width="80" height="40" rx="3"/>
+                    <text class="label" x="168" y="60">S</text>
+                    <text class="highlight-label" x="158" y="110">暫存格 L</text>
+                    <!-- 統一取貨口 -->
+                    <rect class="output-port" x="45" y="145" width="80" height="40" rx="5"/>
+                    <text x="55" y="170" font-size="10" fill="#0a0a1a" font-weight="700">統一取貨口</text>
+                    <!-- 升降機軌道 -->
+                    <rect class="guide-rail" x="50" y="35" width="8" height="100" rx="2"/>
+                    <rect class="guide-rail" x="115" y="35" width="8" height="100" rx="2"/>
+                    <!-- 升降機平台（在目標高度）-->
+                    <g class="elevator-group">
+                        <rect class="elevator-platform" x="45" y="95" width="85" height="18" rx="3"/>
+                        <rect class="belt" x="50" y="99" width="75" height="8" rx="2"/>
+                        <text class="dimension" x="70" y="106">►►►</text>
+                        <!-- 包裹移動 -->
+                        <rect class="package" x="60" y="78" width="35" height="25" rx="4"/>
+                    </g>
+                    <!-- 箭頭 -->
+                    <path class="arrow" d="M 100 103 L 135 103"/>
+                    <text class="dimension" x="102" y="95">水平送入</text>
+                    <!-- LINE 通知 -->
+                    <g transform="translate(290, 30)">
+                        <rect x="0" y="0" width="160" height="110" rx="10" fill="#25D366"/>
+                        <text x="15" y="22" fill="#fff" font-size="12" font-weight="bold">📱 LINE 通知</text>
+                        <text x="15" y="45" fill="#fff" font-size="10">📦 包裹已送達！</text>
+                        <text x="15" y="65" fill="#fff" font-size="10">位置: 3F 中轉站</text>
+                        <text x="15" y="85" fill="#fff" font-size="10" font-weight="bold">請至「統一取貨口」</text>
+                        <text x="15" y="102" fill="#fff" font-size="9">取件碼: 8527</text>
+                    </g>
+                    <!-- 箭頭連接 -->
+                    <path class="arrow" d="M 225 105 L 285 70"/>
+                </svg>
+            </div>
+            
+            <!-- Step 5: 住戶從統一取貨口取件 -->
+            <div class="step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <div class="step-title">統一取貨口 → 取件完成 <span class="v26-badge">v2.6 NEW</span></div>
+                    <div class="step-desc">住戶到樓層中轉站，掃碼或按「一鍵取件」。升降機<strong>自動取出包裹</strong>，<br>送到<strong>統一取貨口</strong>，門開啟後取出即完成。不需找格子，<strong>5 秒完成</strong>！</div>
+                </div>
+                <svg class="diagram" id="step5" viewBox="0 0 520 220">
+                    <!-- 中轉站正面 -->
+                    <rect class="station" x="80" y="25" width="250" height="165" rx="8"/>
+                    <!-- 櫃格陣列（背景暫存） -->
+                    <rect class="cabinet" x="180" y="40" width="50" height="40" rx="3" opacity="0.5"/>
+                    <rect class="cabinet" x="235" y="40" width="50" height="40" rx="3" opacity="0.5"/>
+                    <rect class="cabinet" x="180" y="85" width="90" height="45" rx="3" opacity="0.5"/>
+                    <text class="label" x="197" y="65">S</text>
+                    <text class="label" x="252" y="65">M</text>
+                    <text class="label" x="215" y="112">L(暫存)</text>
+                    <!-- 統一取貨口（主角） -->
+                    <rect class="output-port" x="95" y="90" width="75" height="70" rx="8"/>
+                    <text x="100" y="115" font-size="11" fill="#0a0a1a" font-weight="700">統一</text>
+                    <text x="100" y="130" font-size="11" fill="#0a0a1a" font-weight="700">取貨口</text>
+                    <!-- 取貨口門 -->
+                    <rect class="output-door" x="95" y="90" width="8" height="70" rx="2" fill="#00cc6a"/>
+                    <!-- 包裹 -->
+                    <rect class="package" x="110" y="105" width="40" height="32" rx="4"/>
+                    <!-- 控制面板 -->
+                    <rect x="290" y="140" width="30" height="40" rx="3" fill="#1a0a1a" stroke="#feca57" stroke-width="1"/>
+                    <text class="label" x="292" y="165" fill="#feca57">7"</text>
+                    <!-- 住戶 -->
+                    <circle class="person" cx="40" cy="125" r="22"/>
+                    <text x="40" y="130" text-anchor="middle" font-size="18" fill="#1a0a1a">👤</text>
+                    <text class="highlight-label" x="25" y="165">住戶</text>
+                    <!-- 箭頭 -->
+                    <path class="arrow" d="M 68 125 L 88 125"/>
+                    <!-- 完成標示 -->
+                    <g transform="translate(380, 70)">
+                        <circle cx="40" cy="40" r="35" fill="#00ff88"/>
+                        <text x="40" y="48" text-anchor="middle" font-size="32" fill="#1a0a1a">✓</text>
+                    </g>
+                    <text class="highlight-label" x="375" y="155">取件完成</text>
+                    <!-- 時間標示 -->
+                    <g transform="translate(370, 15)">
+                        <rect x="0" y="0" width="90" height="45" rx="6" fill="rgba(0,255,136,0.15)" stroke="#00ff88" stroke-width="1"/>
+                        <text x="45" y="18" text-anchor="middle" font-size="9" fill="#00ff88">取件時間</text>
+                        <text x="45" y="38" text-anchor="middle" font-size="18" fill="#fff" font-weight="700">5 秒</text>
+                    </g>
+                    <!-- v2.6 特點 -->
+                    <g transform="translate(290, 50)">
+                        <rect x="0" y="0" width="70" height="70" rx="6" fill="rgba(254,202,87,0.1)" stroke="#feca57" stroke-width="1"/>
+                        <text x="10" y="18" font-size="8" fill="#feca57">v2.6 新設計</text>
+                        <text x="10" y="35" font-size="7" fill="#8892b0">✓ 不需找格</text>
+                        <text x="10" y="50" font-size="7" fill="#8892b0">✓ 自動送出</text>
+                        <text x="10" y="65" font-size="7" fill="#00ff88">✓ 5秒取件</text>
+                    </g>
+                </svg>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
