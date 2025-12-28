@@ -266,8 +266,8 @@
             <p class="subtitle">收件模式：外送員投件 → AMR 配送 → 住戶取件</p>
             <div class="feature-tags">
                 <span class="tag">雙向運作（收件+寄件）</span>
-                <span class="tag green">S/M 兩種箱體</span>
-                <span class="tag">容量 10 格（+25%）</span>
+                <span class="tag green">S×2 + M×3 /列</span>
+                <span class="tag">容量 10 格</span>
                 <span class="tag green">深度僅 60cm</span>
             </div>
         </div>
@@ -281,39 +281,44 @@
                     <div class="step-desc">外送員掃碼，系統分配適合尺寸（S/M）。升降機移動到目標位置，<strong>雙向皮帶</strong>從左列或右列拉出空箱體，下降到開口高度（95cm）。</div>
                 </div>
                 <svg class="diagram" id="step1" viewBox="0 0 520 185">
-                    <!-- 大廳站 -->
+                    <!-- 大廳站 (比例: 140cm寬×200cm高 → 200px×155px) -->
                     <rect class="station" x="50" y="15" width="200" height="155" rx="6"/>
-                    <!-- 左列 -->
-                    <rect class="storage-left" x="58" y="22" width="45" height="100" rx="3"/>
-                    <rect class="box-s" x="62" y="26" width="36" height="20" rx="2" opacity="0.5"/>
-                    <rect class="box-m" x="62" y="49" width="36" height="28" rx="2" opacity="0.5"/>
-                    <rect class="box-m" x="62" y="80" width="36" height="28" rx="2" opacity="0.5"/>
-                    <text class="label" x="65" y="130">左列</text>
-                    <!-- 右列 -->
-                    <rect class="storage-right" x="197" y="22" width="45" height="100" rx="3"/>
-                    <rect class="box-s" x="202" y="26" width="36" height="20" rx="2" opacity="0.5"/>
-                    <rect class="box-m" x="202" y="49" width="36" height="28" rx="2" opacity="0.5"/>
-                    <rect class="box-m" x="202" y="80" width="36" height="28" rx="2" opacity="0.5"/>
-                    <text class="label" x="205" y="130">右列</text>
-                    <!-- 升降機 -->
+                    <!-- 左列 45cm = 64px -->
+                    <rect class="storage-left" x="58" y="22" width="55" height="120" rx="3"/>
+                    <!-- 5格: S-M-M-M-S (由上而下) -->
+                    <rect class="box-s" x="62" y="26" width="46" height="18" rx="2" opacity="0.5"/>
+                    <rect class="box-m" x="62" y="48" width="46" height="24" rx="2" opacity="0.5"/>
+                    <rect class="box-m" x="62" y="76" width="46" height="24" rx="2" opacity="0.5"/>
+                    <rect class="box-m" x="62" y="104" width="46" height="24" rx="2" opacity="0.4"/>
+                    <rect class="box-s" x="62" y="132" width="46" height="18" rx="2" opacity="0.3"/>
+                    <text class="label" x="70" y="162">左列</text>
+                    <!-- 右列 45cm = 64px -->
+                    <rect class="storage-right" x="187" y="22" width="55" height="120" rx="3"/>
+                    <rect class="box-s" x="192" y="26" width="46" height="18" rx="2" opacity="0.5"/>
+                    <rect class="box-m" x="192" y="48" width="46" height="24" rx="2" opacity="0.5"/>
+                    <rect class="box-m" x="192" y="76" width="46" height="24" rx="2" opacity="0.5"/>
+                    <rect class="box-m" x="192" y="104" width="46" height="24" rx="2" opacity="0.4"/>
+                    <rect class="box-s" x="192" y="132" width="46" height="18" rx="2" opacity="0.3"/>
+                    <text class="label" x="200" y="162">右列</text>
+                    <!-- 升降機 50cm = 71px -->
                     <g class="elevator-group">
-                        <rect class="elevator-platform" x="112" y="125" width="75" height="16" rx="2"/>
-                        <rect class="belt" x="117" y="128" width="65" height="9" rx="2"/>
-                        <text class="dimension" x="132" y="136">◄══►</text>
+                        <rect class="elevator-platform" x="118" y="125" width="64" height="16" rx="2"/>
+                        <rect class="belt" x="122" y="128" width="56" height="9" rx="2"/>
+                        <text class="dimension" x="135" y="136">◄══►</text>
                         <g class="box-moving">
-                            <rect class="box-m" x="125" y="102" width="42" height="26" rx="3"/>
-                            <text class="box-label" x="133" y="119">M箱</text>
+                            <rect class="box-m" x="128" y="102" width="42" height="26" rx="3"/>
+                            <text class="box-label" x="136" y="119">M箱</text>
                         </g>
                     </g>
-                    <!-- 開口 -->
-                    <rect class="opening" x="112" y="145" width="75" height="12" rx="2"/>
+                    <!-- 開口 95cm -->
+                    <rect class="opening" x="118" y="145" width="64" height="12" rx="2"/>
                     <text class="label" x="125" y="175">開口 95cm</text>
                     <!-- 特點框 -->
                     <g transform="translate(290, 20)">
-                        <rect x="0" y="0" width="130" height="80" rx="6" fill="rgba(254,202,87,0.1)" stroke="#feca57"/>
+                        <rect x="0" y="0" width="130" height="85" rx="6" fill="rgba(254,202,87,0.1)" stroke="#feca57"/>
                         <text x="10" y="18" font-size="9" fill="#feca57">v3.1 大廳站</text>
                         <text x="10" y="34" font-size="7" fill="#8892b0">✓ 雙列暫存 10 格</text>
-                        <text x="10" y="48" font-size="7" fill="#8892b0">✓ S×4 + M×6</text>
+                        <text x="10" y="48" font-size="7" fill="#8892b0">✓ (S×2 + M×3) × 2列</text>
                         <text x="10" y="62" font-size="7" fill="#00ff88">✓ 單升降機服務雙列</text>
                         <text x="10" y="76" font-size="7" fill="#8892b0">✓ 尺寸 140×200×60cm</text>
                     </g>
@@ -375,24 +380,30 @@
                     <!-- 大廳站 -->
                     <rect class="station" x="50" y="15" width="200" height="155" rx="6"/>
                     <!-- 左列 -->
-                    <rect class="storage-left" x="58" y="22" width="45" height="100" rx="3"/>
-                    <rect class="box-s" x="62" y="26" width="36" height="20" rx="2" opacity="0.4"/>
-                    <rect class="box-m" x="62" y="49" width="36" height="28" rx="2" opacity="0.4"/>
-                    <text class="label" x="65" y="130">左列</text>
+                    <rect class="storage-left" x="58" y="22" width="55" height="120" rx="3"/>
+                    <rect class="box-s" x="62" y="26" width="46" height="18" rx="2" opacity="0.4"/>
+                    <rect class="box-m" x="62" y="48" width="46" height="24" rx="2" opacity="0.4"/>
+                    <rect class="box-m" x="62" y="76" width="46" height="24" rx="2" opacity="0.4"/>
+                    <rect class="box-m" x="62" y="104" width="46" height="24" rx="2" opacity="0.3"/>
+                    <rect class="box-s" x="62" y="132" width="46" height="18" rx="2" opacity="0.3"/>
+                    <text class="label" x="70" y="162">左列</text>
                     <!-- 右列 -->
-                    <rect class="storage-right" x="197" y="22" width="45" height="100" rx="3"/>
-                    <rect class="box-s" x="202" y="26" width="36" height="20" rx="2" opacity="0.4"/>
-                    <rect class="box-m" x="202" y="49" width="36" height="28" rx="2" opacity="0.4"/>
-                    <text class="label" x="205" y="130">右列</text>
+                    <rect class="storage-right" x="187" y="22" width="55" height="120" rx="3"/>
+                    <rect class="box-s" x="192" y="26" width="46" height="18" rx="2" opacity="0.4"/>
+                    <rect class="box-m" x="192" y="48" width="46" height="24" rx="2" opacity="0.4"/>
+                    <rect class="box-m" x="192" y="76" width="46" height="24" rx="2" opacity="0.4"/>
+                    <rect class="box-m" x="192" y="104" width="46" height="24" rx="2" opacity="0.3"/>
+                    <rect class="box-s" x="192" y="132" width="46" height="18" rx="2" opacity="0.3"/>
+                    <text class="label" x="200" y="162">右列</text>
                     <!-- 升降機 -->
                     <g class="elevator-group">
-                        <rect class="elevator-platform" x="112" y="130" width="75" height="16" rx="2"/>
-                        <rect class="belt" x="117" y="133" width="65" height="9" rx="2"/>
-                        <text class="dimension" x="145" y="141">══►</text>
+                        <rect class="elevator-platform" x="118" y="130" width="64" height="16" rx="2"/>
+                        <rect class="belt" x="122" y="133" width="56" height="9" rx="2"/>
+                        <text class="dimension" x="140" y="141">══►</text>
                         <g class="box-moving">
-                            <rect class="box-m" x="125" y="107" width="42" height="26" rx="3"/>
-                            <rect class="package" x="134" y="112" width="22" height="16" rx="2"/>
-                            <text class="dimension" x="130" y="103">🔒</text>
+                            <rect class="box-m" x="128" y="107" width="42" height="26" rx="3"/>
+                            <rect class="package" x="137" y="112" width="22" height="16" rx="2"/>
+                            <text class="dimension" x="133" y="103">🔒</text>
                         </g>
                     </g>
                     <!-- 箭頭 -->
@@ -426,17 +437,20 @@
                 <svg class="diagram" id="step4" viewBox="0 0 520 185">
                     <!-- 大廳站 -->
                     <rect class="station" x="40" y="20" width="170" height="145" rx="6"/>
-                    <!-- 暫存 -->
-                    <rect class="storage-left" x="48" y="28" width="42" height="80" rx="3"/>
-                    <rect class="box-m" x="52" y="32" width="34" height="24" rx="2" opacity="0.4"/>
-                    <rect class="box-m" x="52" y="59" width="34" height="24" rx="2" opacity="0.4"/>
+                    <!-- 暫存 (左列 5 格) -->
+                    <rect class="storage-left" x="48" y="28" width="45" height="105" rx="3"/>
+                    <rect class="box-s" x="52" y="32" width="36" height="16" rx="2" opacity="0.4"/>
+                    <rect class="box-m" x="52" y="51" width="36" height="20" rx="2" opacity="0.4"/>
+                    <rect class="box-m" x="52" y="74" width="36" height="20" rx="2" opacity="0.4"/>
+                    <rect class="box-m" x="52" y="97" width="36" height="20" rx="2" opacity="0.3"/>
+                    <rect class="box-s" x="52" y="120" width="36" height="16" rx="2" opacity="0.3"/>
                     <!-- 升降機 -->
                     <g class="elevator-group">
-                        <rect class="elevator-platform" x="100" y="125" width="65" height="14" rx="2"/>
-                        <rect class="belt" x="105" y="128" width="55" height="8" rx="2"/>
-                        <rect class="box-m" x="112" y="102" width="40" height="26" rx="3"/>
-                        <rect class="package" x="120" y="108" width="22" height="16" rx="2"/>
-                        <text class="box-label" x="118" y="138">M箱</text>
+                        <rect class="elevator-platform" x="100" y="125" width="55" height="14" rx="2"/>
+                        <rect class="belt" x="104" y="128" width="47" height="8" rx="2"/>
+                        <rect class="box-m" x="108" y="102" width="40" height="26" rx="3"/>
+                        <rect class="package" x="116" y="108" width="22" height="16" rx="2"/>
+                        <text class="box-label" x="114" y="138">M箱</text>
                     </g>
                     <!-- AMR 對接區 -->
                     <rect x="40" y="148" width="170" height="14" rx="2" fill="rgba(0,217,255,0.2)" stroke="#00d9ff"/>

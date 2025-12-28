@@ -11,7 +11,9 @@
 | 站點 | 說明 | 預覽連結 |
 |------|------|----------|
 | **大廳站** | 外送員投件 / 快遞員取件流程 | [點擊查看](https://phileiny.github.io/auro_box/html/lobby_station_v31.html) |
+| **大廳站透視圖** | 3D 等角透視、前視、側視、俯視、剖面圖 | [點擊查看](https://phileiny.github.io/auro_box/html/lobby_perspective_v31.html) |
 | **樓層站** | 住戶取件 / 住戶寄件流程 | [點擊查看](https://phileiny.github.io/auro_box/html/floor_station_v31.html) |
+| **樓層站透視圖** | 3D 等角透視、前視、側視、俯視、剖面圖 | [點擊查看](https://phileiny.github.io/auro_box/html/floor_perspective_v31.html) |
 
 ---
 
@@ -68,7 +70,9 @@ auro_box/
 │   └── smart_community_delivery_system_v2.6.md
 └── html/
     ├── lobby_station_v31.html                   # 最新展示頁 ⭐
+    ├── lobby_perspective_v31.html               # 大廳站透視圖 ⭐
     ├── floor_station_v31.html                   # 最新展示頁 ⭐
+    ├── floor_perspective_v31.html               # 樓層站透視圖 ⭐
     ├── lobby_station_v26.html
     └── floor_station_v26.html
 ```
@@ -77,7 +81,9 @@ auro_box/
 |------|------|
 | `docs/smart_community_delivery_system_v3.1.md` | **最新規格書** - 雙向運作、S/M箱體、正開設計 |
 | `html/lobby_station_v31.html` | 大廳站流程展示（收件+寄件雙向） |
+| `html/lobby_perspective_v31.html` | 大廳站透視圖（3D、前視、側視、俯視、剖面） |
 | `html/floor_station_v31.html` | 樓層站流程展示（取件+寄件雙向） |
+| `html/floor_perspective_v31.html` | 樓層站透視圖（3D、前視、側視、俯視、剖面） |
 
 ---
 
