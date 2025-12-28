@@ -6,6 +6,15 @@
 
 ---
 
+## 展示頁預覽
+
+| 站點 | 說明 | 預覽連結 |
+|------|------|----------|
+| **大廳站** | 外送員投件流程（青綠色系） | [點擊查看](https://htmlpreview.github.io/?https://github.com/phileiny/auro_box/blob/main/html/lobby_station_v26.html) |
+| **樓層站** | 住戶取件流程（紅黃色系） | [點擊查看](https://htmlpreview.github.io/?https://github.com/phileiny/auro_box/blob/main/html/floor_station_v26.html) |
+
+---
+
 ## 核心設計特色
 
 | 特色 | 說明 | 效益 |
