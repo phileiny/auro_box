@@ -1,0 +1,3020 @@
+{
+	"info": {
+		"_postman_id": "83c86e4f-0cfe-4348-916e-3f7f00344a46",
+		"name": "Pudu Api",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "799713"
+	},
+	"item": [
+		{
+			"name": "通用",
+			"item": [
+				{
+					"name": "03基本資料",
+					"item": [
+						{
+							"name": "取得店鋪列表",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const CryptoJS = require(\"crypto-js\");\r",
+											"// 1. 讀取環境變數（或使用預設值）\r",
+											"var apiAppKey = pm.environment.get(\"ApiAppKey\");\r",
+											"var apiAppSecret = pm.environment.get(\"ApiAppSecret\");\r",
+											"\r",
+											"// 2. 設定基本參數\r",
+											"var method = pm.request.method.toUpperCase(); // GET 或 POST\r",
+											"var accept = \"application/json\";\r",
+											"var contentType = \"application/json\";\r",
+											"var xDate = new Date().toUTCString();\r",
+											"var contentMD5 = \"\";\r",
+											"\r",
+											"// 3. 若為 POST 且有 Body，則計算 Content-MD5（GET 請求則留空）\r",
+											"if(method === \"POST\" && pm.request.body && pm.request.body.raw) {\r",
+											"    var body = pm.request.body.raw;\r",
+											"    var md5Hash = CryptoJS.MD5(body);\r",
+											"    contentMD5 = CryptoJS.enc.Base64.stringify(md5Hash);\r",
+											"}\r",
+											"\r",
+											"// 4. 取得 URL 的 path 及排序後的 query string\r",
+											"var urlObj = pm.request.url;\r",
+											"var path = urlObj.getPath(); // 取得 path（不含域名）\r",
+											"if(!path || path === \"\") {\r",
+											"    path = \"/\";\r",
+											"}\r",
+											"\r",
+											"if(urlObj.query && urlObj.query.count() > 0) {\r",
+											"    // 取得所有 query 參數並按字典排序\r",
+											"    var sortedQuery = urlObj.query.toObject();\r",
+											"    var keys = Object.keys(sortedQuery).sort();\r",
+											"    var queryArr = [];\r",
+											"    keys.forEach(function(key) {\r",
+											"        // 若值為空，只保留 key，否則將值進行 decode\r",
+											"        if(sortedQuery[key] === \"\") {\r",
+											"            queryArr.push(key);\r",
+											"        } else {\r",
+											"            queryArr.push(key + \"=\" + decodeURIComponent(sortedQuery[key]));\r",
+											"        }\r",
+											"    });\r",
+											"    path += \"?\" + queryArr.join(\"&\");\r",
+											"}\r",
+											"\r",
+											"// 5. 組合簽名字串（每個部分以換行符分隔）\r",
+											"var stringToSign = \"x-date: \" + xDate + \"\\n\" +\r",
+											"                   method + \"\\n\" +\r",
+											"                   accept + \"\\n\" +\r",
+											"                   contentType + \"\\n\" +\r",
+											"                   contentMD5 + \"\\n\" +\r",
+											"                   path;\r",
+											"console.log(\"stringToSign:\\n\" + stringToSign);\r",
+											"\r",
+											"// 6. 計算 HMAC-SHA1 簽名並進行 Base64 編碼\r",
+											"var signature = CryptoJS.HmacSHA1(stringToSign, apiAppSecret);\r",
+											"var signatureBase64 = CryptoJS.enc.Base64.stringify(signature);\r",
+											"console.log(\"Signature Base64:\", signatureBase64);\r",
+											"\r",
+											"// 7. 組合 Authorization header\r",
+											"var authHeader = 'hmac id=\"' + apiAppKey + '\", algorithm=\"hmac-sha1\", headers=\"x-date\", signature=\"' + signatureBase64 + '\"';\r",
+											"\r",
+											"// 8. 將 Header 加入請求（注意 Host 處理）\r",
+											"var hostStr = Array.isArray(pm.request.url.host) ? pm.request.url.host.join(\".\") : pm.request.url.host;\r",
+											"pm.request.headers.upsert({ key: \"Host\", value: hostStr });\r",
+											"pm.request.headers.upsert({ key: \"Accept\", value: accept });\r",
+											"pm.request.headers.upsert({ key: \"Content-Type\", value: contentType });\r",
+											"pm.request.headers.upsert({ key: \"x-date\", value: xDate });\r",
+											"pm.request.headers.upsert({ key: \"Authorization\", value: authHeader });\r",
+											"if(method === \"POST\" && contentMD5) {\r",
+											"    pm.request.headers.upsert({ key: \"Content-MD5\", value: contentMD5 });\r",
+											"}\r",
+											"\r",
+											"console.log(\"Final Headers:\", pm.request.headers.toObject());\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://css-open-platform.pudutech.com/pudu-entry/data-open-platform-service/v1/api/shop?limit=100&offset=101",
+									"protocol": "https",
+									"host": [
+										"css-open-platform",
+										"pudutech",
+										"com"
+									],
+									"path": [
+										"pudu-entry",
+										"data-open-platform-service",
+										"v1",
+										"api",
+										"shop"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "100"
+										},
+										{
+											"key": "offset",
+											"value": "101"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "取得機器列表",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const CryptoJS = require(\"crypto-js\");\r",
+											"// 1. 讀取環境變數（或使用預設值）\r",
+											"var apiAppKey = pm.environment.get(\"ApiAppKey\");\r",
+											"var apiAppSecret = pm.environment.get(\"ApiAppSecret\");\r",
+											"\r",
+											"// 2. 設定基本參數\r",
+											"var method = pm.request.method.toUpperCase(); // GET 或 POST\r",
+											"var accept = \"application/json\";\r",
+											"var contentType = \"application/json\";\r",
+											"var xDate = new Date().toUTCString();\r",
+											"var contentMD5 = \"\";\r",
+											"\r",
+											"// 3. 若為 POST 且有 Body，則計算 Content-MD5（GET 請求則留空）\r",
+											"if(method === \"POST\" && pm.request.body && pm.request.body.raw) {\r",
+											"    var body = pm.request.body.raw;\r",
+											"    var md5Hash = CryptoJS.MD5(body);\r",
+											"    contentMD5 = CryptoJS.enc.Base64.stringify(md5Hash);\r",
+											"}\r",
+											"\r",
+											"// 4. 取得 URL 的 path 及排序後的 query string\r",
+											"var urlObj = pm.request.url;\r",
+											"var path = urlObj.getPath(); // 取得 path（不含域名）\r",
+											"if(!path || path === \"\") {\r",
+											"    path = \"/\";\r",
+											"}\r",
+											"\r",
+											"if(urlObj.query && urlObj.query.count() > 0) {\r",
+											"    // 取得所有 query 參數並按字典排序\r",
+											"    var sortedQuery = urlObj.query.toObject();\r",
+											"    var keys = Object.keys(sortedQuery).sort();\r",
+											"    var queryArr = [];\r",
+											"    keys.forEach(function(key) {\r",
+											"        // 若值為空，只保留 key，否則將值進行 decode\r",
+											"        if(sortedQuery[key] === \"\") {\r",
+											"            queryArr.push(key);\r",
+											"        } else {\r",
+											"            queryArr.push(key + \"=\" + decodeURIComponent(sortedQuery[key]));\r",
+											"        }\r",
+											"    });\r",
+											"    path += \"?\" + queryArr.join(\"&\");\r",
+											"}\r",
+											"\r",
+											"// 5. 組合簽名字串（每個部分以換行符分隔）\r",
+											"var stringToSign = \"x-date: \" + xDate + \"\\n\" +\r",
+											"                   method + \"\\n\" +\r",
+											"                   accept + \"\\n\" +\r",
+											"                   contentType + \"\\n\" +\r",
+											"                   contentMD5 + \"\\n\" +\r",
+											"                   path;\r",
+											"console.log(\"stringToSign:\\n\" + stringToSign);\r",
+											"\r",
+											"// 6. 計算 HMAC-SHA1 簽名並進行 Base64 編碼\r",
+											"var signature = CryptoJS.HmacSHA1(stringToSign, apiAppSecret);\r",
+											"var signatureBase64 = CryptoJS.enc.Base64.stringify(signature);\r",
+											"console.log(\"Signature Base64:\", signatureBase64);\r",
+											"\r",
+											"// 7. 組合 Authorization header\r",
+											"var authHeader = 'hmac id=\"' + apiAppKey + '\", algorithm=\"hmac-sha1\", headers=\"x-date\", signature=\"' + signatureBase64 + '\"';\r",
+											"\r",
+											"// 8. 將 Header 加入請求（注意 Host 處理）\r",
+											"var hostStr = Array.isArray(pm.request.url.host) ? pm.request.url.host.join(\".\") : pm.request.url.host;\r",
+											"pm.request.headers.upsert({ key: \"Host\", value: hostStr });\r",
+											"pm.request.headers.upsert({ key: \"Accept\", value: accept });\r",
+											"pm.request.headers.upsert({ key: \"Content-Type\", value: contentType });\r",
+											"pm.request.headers.upsert({ key: \"x-date\", value: xDate });\r",
+											"pm.request.headers.upsert({ key: \"Authorization\", value: authHeader });\r",
+											"if(method === \"POST\" && contentMD5) {\r",
+											"    pm.request.headers.upsert({ key: \"Content-MD5\", value: contentMD5 });\r",
+											"}\r",
+											"\r",
+											"console.log(\"Final Headers:\", pm.request.headers.toObject());\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://css-open-platform.pudutech.com/pudu-entry/data-open-platform-service/v1/api/robot?shop_id=408250001",
+									"protocol": "https",
+									"host": [
+										"css-open-platform",
+										"pudutech",
+										"com"
+									],
+									"path": [
+										"pudu-entry",
+										"data-open-platform-service",
+										"v1",
+										"api",
+										"robot"
+									],
+									"query": [
+										{
+											"key": "shop_id",
+											"value": "408250001"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "取得地圖列表",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const CryptoJS = require(\"crypto-js\");\r",
+											"// 1. 讀取環境變數（或使用預設值）\r",
+											"var apiAppKey = pm.environment.get(\"ApiAppKey\");\r",
+											"var apiAppSecret = pm.environment.get(\"ApiAppSecret\");\r",
+											"\r",
+											"// 2. 設定基本參數\r",
+											"var method = pm.request.method.toUpperCase(); // GET 或 POST\r",
+											"var accept = \"application/json\";\r",
+											"var contentType = \"application/json\";\r",
+											"var xDate = new Date().toUTCString();\r",
+											"var contentMD5 = \"\";\r",
+											"\r",
+											"// 3. 若為 POST 且有 Body，則計算 Content-MD5（GET 請求則留空）\r",
+											"if(method === \"POST\" && pm.request.body && pm.request.body.raw) {\r",
+											"    var body = pm.request.body.raw;\r",
+											"    var md5Hash = CryptoJS.MD5(body);\r",
+											"    contentMD5 = CryptoJS.enc.Base64.stringify(md5Hash);\r",
+											"}\r",
+											"\r",
+											"// 4. 取得 URL 的 path 及排序後的 query string\r",
+											"var urlObj = pm.request.url;\r",
+											"var path = urlObj.getPath(); // 取得 path（不含域名）\r",
+											"if(!path || path === \"\") {\r",
+											"    path = \"/\";\r",
+											"}\r",
+											"\r",
+											"if(urlObj.query && urlObj.query.count() > 0) {\r",
+											"    // 取得所有 query 參數並按字典排序\r",
+											"    var sortedQuery = urlObj.query.toObject();\r",
+											"    var keys = Object.keys(sortedQuery).sort();\r",
+											"    var queryArr = [];\r",
+											"    keys.forEach(function(key) {\r",
+											"        // 若值為空，只保留 key，否則將值進行 decode\r",
+											"        if(sortedQuery[key] === \"\") {\r",
+											"            queryArr.push(key);\r",
+											"        } else {\r",
+											"            queryArr.push(key + \"=\" + decodeURIComponent(sortedQuery[key]));\r",
+											"        }\r",
+											"    });\r",
+											"    path += \"?\" + queryArr.join(\"&\");\r",
+											"}\r",
+											"\r",
+											"// 5. 組合簽名字串（每個部分以換行符分隔）\r",
+											"var stringToSign = \"x-date: \" + xDate + \"\\n\" +\r",
+											"                   method + \"\\n\" +\r",
+											"                   accept + \"\\n\" +\r",
+											"                   contentType + \"\\n\" +\r",
+											"                   contentMD5 + \"\\n\" +\r",
+											"                   path;\r",
+											"console.log(\"stringToSign:\\n\" + stringToSign);\r",
+											"\r",
+											"// 6. 計算 HMAC-SHA1 簽名並進行 Base64 編碼\r",
+											"var signature = CryptoJS.HmacSHA1(stringToSign, apiAppSecret);\r",
+											"var signatureBase64 = CryptoJS.enc.Base64.stringify(signature);\r",
+											"console.log(\"Signature Base64:\", signatureBase64);\r",
+											"\r",
+											"// 7. 組合 Authorization header\r",
+											"var authHeader = 'hmac id=\"' + apiAppKey + '\", algorithm=\"hmac-sha1\", headers=\"x-date\", signature=\"' + signatureBase64 + '\"';\r",
+											"\r",
+											"// 8. 將 Header 加入請求（注意 Host 處理）\r",
+											"var hostStr = Array.isArray(pm.request.url.host) ? pm.request.url.host.join(\".\") : pm.request.url.host;\r",
+											"pm.request.headers.upsert({ key: \"Host\", value: hostStr });\r",
+											"pm.request.headers.upsert({ key: \"Accept\", value: accept });\r",
+											"pm.request.headers.upsert({ key: \"Content-Type\", value: contentType });\r",
+											"pm.request.headers.upsert({ key: \"x-date\", value: xDate });\r",
+											"pm.request.headers.upsert({ key: \"Authorization\", value: authHeader });\r",
+											"if(method === \"POST\" && contentMD5) {\r",
+											"    pm.request.headers.upsert({ key: \"Content-MD5\", value: contentMD5 });\r",
+											"}\r",
+											"\r",
+											"console.log(\"Final Headers:\", pm.request.headers.toObject());\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://css-open-platform.pudutech.com/pudu-entry/data-open-platform-service/v1/api/maps?shop_id=14060002",
+									"protocol": "https",
+									"host": [
+										"css-open-platform",
+										"pudutech",
+										"com"
+									],
+									"path": [
+										"pudu-entry",
+										"data-open-platform-service",
+										"v1",
+										"api",
+										"maps"
+									],
+									"query": [
+										{
+											"key": "shop_id",
+											"value": "14060002"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "取得地圖詳細",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const CryptoJS = require(\"crypto-js\");\r",
+											"// 1. 讀取環境變數（或使用預設值）\r",
+											"var apiAppKey = pm.environment.get(\"ApiAppKey\");\r",
+											"var apiAppSecret = pm.environment.get(\"ApiAppSecret\");\r",
+											"\r",
+											"// 2. 設定基本參數\r",
+											"var method = pm.request.method.toUpperCase(); // GET 或 POST\r",
+											"var accept = \"application/json\";\r",
+											"var contentType = \"application/json\";\r",
+											"var xDate = new Date().toUTCString();\r",
+											"var contentMD5 = \"\";\r",
+											"\r",
+											"// 3. 若為 POST 且有 Body，則計算 Content-MD5（GET 請求則留空）\r",
+											"if(method === \"POST\" && pm.request.body && pm.request.body.raw) {\r",
+											"    var body = pm.request.body.raw;\r",
+											"    var md5Hash = CryptoJS.MD5(body);\r",
+											"    contentMD5 = CryptoJS.enc.Base64.stringify(md5Hash);\r",
+											"}\r",
+											"\r",
+											"// 4. 取得 URL 的 path 及排序後的 query string\r",
+											"var urlObj = pm.request.url;\r",
+											"var path = urlObj.getPath(); // 取得 path（不含域名）\r",
+											"if(!path || path === \"\") {\r",
+											"    path = \"/\";\r",
+											"}\r",
+											"\r",
+											"if(urlObj.query && urlObj.query.count() > 0) {\r",
+											"    // 取得所有 query 參數並按字典排序\r",
+											"    var sortedQuery = urlObj.query.toObject();\r",
+											"    var keys = Object.keys(sortedQuery).sort();\r",
+											"    var queryArr = [];\r",
+											"    keys.forEach(function(key) {\r",
+											"        // 若值為空，只保留 key，否則將值進行 decode\r",
+											"        if(sortedQuery[key] === \"\") {\r",
+											"            queryArr.push(key);\r",
+											"        } else {\r",
+											"            queryArr.push(key + \"=\" + decodeURIComponent(sortedQuery[key]));\r",
+											"        }\r",
+											"    });\r",
+											"    path += \"?\" + queryArr.join(\"&\");\r",
+											"}\r",
+											"\r",
+											"// 5. 組合簽名字串（每個部分以換行符分隔）\r",
+											"var stringToSign = \"x-date: \" + xDate + \"\\n\" +\r",
+											"                   method + \"\\n\" +\r",
+											"                   accept + \"\\n\" +\r",
+											"                   contentType + \"\\n\" +\r",
+											"                   contentMD5 + \"\\n\" +\r",
+											"                   path;\r",
+											"console.log(\"stringToSign:\\n\" + stringToSign);\r",
+											"\r",
+											"// 6. 計算 HMAC-SHA1 簽名並進行 Base64 編碼\r",
+											"var signature = CryptoJS.HmacSHA1(stringToSign, apiAppSecret);\r",
+											"var signatureBase64 = CryptoJS.enc.Base64.stringify(signature);\r",
+											"console.log(\"Signature Base64:\", signatureBase64);\r",
+											"\r",
+											"// 7. 組合 Authorization header\r",
+											"var authHeader = 'hmac id=\"' + apiAppKey + '\", algorithm=\"hmac-sha1\", headers=\"x-date\", signature=\"' + signatureBase64 + '\"';\r",
+											"\r",
+											"// 8. 將 Header 加入請求（注意 Host 處理）\r",
+											"var hostStr = Array.isArray(pm.request.url.host) ? pm.request.url.host.join(\".\") : pm.request.url.host;\r",
+											"pm.request.headers.upsert({ key: \"Host\", value: hostStr });\r",
+											"pm.request.headers.upsert({ key: \"Accept\", value: accept });\r",
+											"pm.request.headers.upsert({ key: \"Content-Type\", value: contentType });\r",
+											"pm.request.headers.upsert({ key: \"x-date\", value: xDate });\r",
+											"pm.request.headers.upsert({ key: \"Authorization\", value: authHeader });\r",
+											"if(method === \"POST\" && contentMD5) {\r",
+											"    pm.request.headers.upsert({ key: \"Content-MD5\", value: contentMD5 });\r",
+											"}\r",
+											"\r",
+											"console.log(\"Final Headers:\", pm.request.headers.toObject());\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://css-open-platform.pudutech.com/pudu-entry/data-open-platform-service/v1/api/map?shop_id=408250001&map_name=0%230%23內湖展間導覽測試&device_width=1200&device_height=800",
+									"protocol": "https",
+									"host": [
+										"css-open-platform",
+										"pudutech",
+										"com"
+									],
+									"path": [
+										"pudu-entry",
+										"data-open-platform-service",
+										"v1",
+										"api",
+										"map"
+									],
+									"query": [
+										{
+											"key": "shop_id",
+											"value": "408250001"
+										},
+										{
+											"key": "map_name",
+											"value": "0%230%23內湖展間導覽測試"
+										},
+										{
+											"key": "device_width",
+											"value": "1200"
+										},
+										{
+											"key": "device_height",
+											"value": "800"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "取得機器即時位置",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const CryptoJS = require(\"crypto-js\");\r",
+											"// 1. 讀取環境變數（或使用預設值）\r",
+											"var apiAppKey = pm.environment.get(\"ApiAppKey\");\r",
+											"var apiAppSecret = pm.environment.get(\"ApiAppSecret\");\r",
+											"\r",
+											"// 2. 設定基本參數\r",
+											"var method = pm.request.method.toUpperCase(); // GET 或 POST\r",
+											"var accept = \"application/json\";\r",
+											"var contentType = \"application/json\";\r",
+											"var xDate = new Date().toUTCString();\r",
+											"var contentMD5 = \"\";\r",
+											"\r",
+											"// 3. 若為 POST 且有 Body，則計算 Content-MD5（GET 請求則留空）\r",
+											"if(method === \"POST\" && pm.request.body && pm.request.body.raw) {\r",
+											"    var body = pm.request.body.raw;\r",
+											"    var md5Hash = CryptoJS.MD5(body);\r",
+											"    contentMD5 = CryptoJS.enc.Base64.stringify(md5Hash);\r",
+											"}\r",
+											"\r",
+											"// 4. 取得 URL 的 path 及排序後的 query string\r",
+											"var urlObj = pm.request.url;\r",
+											"var path = urlObj.getPath(); // 取得 path（不含域名）\r",
+											"if(!path || path === \"\") {\r",
+											"    path = \"/\";\r",
+											"}\r",
+											"\r",
+											"if(urlObj.query && urlObj.query.count() > 0) {\r",
+											"    // 取得所有 query 參數並按字典排序\r",
+											"    var sortedQuery = urlObj.query.toObject();\r",
+											"    var keys = Object.keys(sortedQuery).sort();\r",
+											"    var queryArr = [];\r",
+											"    keys.forEach(function(key) {\r",
+											"        // 若值為空，只保留 key，否則將值進行 decode\r",
+											"        if(sortedQuery[key] === \"\") {\r",
+											"            queryArr.push(key);\r",
+											"        } else {\r",
+											"            queryArr.push(key + \"=\" + decodeURIComponent(sortedQuery[key]));\r",
+											"        }\r",
+											"    });\r",
+											"    path += \"?\" + queryArr.join(\"&\");\r",
+											"}\r",
+											"\r",
+											"// 5. 組合簽名字串（每個部分以換行符分隔）\r",
+											"var stringToSign = \"x-date: \" + xDate + \"\\n\" +\r",
+											"                   method + \"\\n\" +\r",
+											"                   accept + \"\\n\" +\r",
+											"                   contentType + \"\\n\" +\r",
+											"                   contentMD5 + \"\\n\" +\r",
+											"                   path;\r",
+											"console.log(\"stringToSign:\\n\" + stringToSign);\r",
+											"\r",
+											"// 6. 計算 HMAC-SHA1 簽名並進行 Base64 編碼\r",
+											"var signature = CryptoJS.HmacSHA1(stringToSign, apiAppSecret);\r",
+											"var signatureBase64 = CryptoJS.enc.Base64.stringify(signature);\r",
+											"console.log(\"Signature Base64:\", signatureBase64);\r",
+											"\r",
+											"// 7. 組合 Authorization header\r",
+											"var authHeader = 'hmac id=\"' + apiAppKey + '\", algorithm=\"hmac-sha1\", headers=\"x-date\", signature=\"' + signatureBase64 + '\"';\r",
+											"\r",
+											"// 8. 將 Header 加入請求（注意 Host 處理）\r",
+											"var hostStr = Array.isArray(pm.request.url.host) ? pm.request.url.host.join(\".\") : pm.request.url.host;\r",
+											"pm.request.headers.upsert({ key: \"Host\", value: hostStr });\r",
+											"pm.request.headers.upsert({ key: \"Accept\", value: accept });\r",
+											"pm.request.headers.upsert({ key: \"Content-Type\", value: contentType });\r",
+											"pm.request.headers.upsert({ key: \"x-date\", value: xDate });\r",
+											"pm.request.headers.upsert({ key: \"Authorization\", value: authHeader });\r",
+											"if(method === \"POST\" && contentMD5) {\r",
+											"    pm.request.headers.upsert({ key: \"Content-MD5\", value: contentMD5 });\r",
+											"}\r",
+											"\r",
+											"console.log(\"Final Headers:\", pm.request.headers.toObject());\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://css-open-platform.pudutech.com/pudu-entry/data-open-platform-service/v1/api/map/robotCurrentPosition?shop_id=506650000&sn=8S2054B06050022",
+									"protocol": "https",
+									"host": [
+										"css-open-platform",
+										"pudutech",
+										"com"
+									],
+									"path": [
+										"pudu-entry",
+										"data-open-platform-service",
+										"v1",
+										"api",
+										"map",
+										"robotCurrentPosition"
+									],
+									"query": [
+										{
+											"key": "shop_id",
+											"value": "506650000"
+										},
+										{
+											"key": "sn",
+											"value": "8S2054B06050022"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "總覽數據 API",
+					"item": [
+						{
+							"name": "機器概覽",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const CryptoJS = require(\"crypto-js\");\r",
+											"// 1. 讀取環境變數（或使用預設值）\r",
+											"var apiAppKey = pm.environment.get(\"ApiAppKey\");\r",
+											"var apiAppSecret = pm.environment.get(\"ApiAppSecret\");\r",
+											"\r",
+											"// 2. 設定基本參數\r",
+											"var method = pm.request.method.toUpperCase(); // GET 或 POST\r",
+											"var accept = \"application/json\";\r",
+											"var contentType = \"application/json\";\r",
+											"var xDate = new Date().toUTCString();\r",
+											"var contentMD5 = \"\";\r",
+											"\r",
+											"// 3. 若為 POST 且有 Body，則計算 Content-MD5（GET 請求則留空）\r",
+											"if(method === \"POST\" && pm.request.body && pm.request.body.raw) {\r",
+											"    var body = pm.request.body.raw;\r",
+											"    var md5Hash = CryptoJS.MD5(body);\r",
+											"    contentMD5 = CryptoJS.enc.Base64.stringify(md5Hash);\r",
+											"}\r",
+											"\r",
+											"// 4. 取得 URL 的 path 及排序後的 query string\r",
+											"var urlObj = pm.request.url;\r",
+											"var path = urlObj.getPath(); // 取得 path（不含域名）\r",
+											"if(!path || path === \"\") {\r",
+											"    path = \"/\";\r",
+											"}\r",
+											"\r",
+											"if(urlObj.query && urlObj.query.count() > 0) {\r",
+											"    // 取得所有 query 參數並按字典排序\r",
+											"    var sortedQuery = urlObj.query.toObject();\r",
+											"    var keys = Object.keys(sortedQuery).sort();\r",
+											"    var queryArr = [];\r",
+											"    keys.forEach(function(key) {\r",
+											"        // 若值為空，只保留 key，否則將值進行 decode\r",
+											"        if(sortedQuery[key] === \"\") {\r",
+											"            queryArr.push(key);\r",
+											"        } else {\r",
+											"            queryArr.push(key + \"=\" + decodeURIComponent(sortedQuery[key]));\r",
+											"        }\r",
+											"    });\r",
+											"    path += \"?\" + queryArr.join(\"&\");\r",
+											"}\r",
+											"\r",
+											"// 5. 組合簽名字串（每個部分以換行符分隔）\r",
+											"var stringToSign = \"x-date: \" + xDate + \"\\n\" +\r",
+											"                   method + \"\\n\" +\r",
+											"                   accept + \"\\n\" +\r",
+											"                   contentType + \"\\n\" +\r",
+											"                   contentMD5 + \"\\n\" +\r",
+											"                   path;\r",
+											"console.log(\"stringToSign:\\n\" + stringToSign);\r",
+											"\r",
+											"// 6. 計算 HMAC-SHA1 簽名並進行 Base64 編碼\r",
+											"var signature = CryptoJS.HmacSHA1(stringToSign, apiAppSecret);\r",
+											"var signatureBase64 = CryptoJS.enc.Base64.stringify(signature);\r",
+											"console.log(\"Signature Base64:\", signatureBase64);\r",
+											"\r",
+											"// 7. 組合 Authorization header\r",
+											"var authHeader = 'hmac id=\"' + apiAppKey + '\", algorithm=\"hmac-sha1\", headers=\"x-date\", signature=\"' + signatureBase64 + '\"';\r",
+											"\r",
+											"// 8. 將 Header 加入請求（注意 Host 處理）\r",
+											"var hostStr = Array.isArray(pm.request.url.host) ? pm.request.url.host.join(\".\") : pm.request.url.host;\r",
+											"pm.request.headers.upsert({ key: \"Host\", value: hostStr });\r",
+											"pm.request.headers.upsert({ key: \"Accept\", value: accept });\r",
+											"pm.request.headers.upsert({ key: \"Content-Type\", value: contentType });\r",
+											"pm.request.headers.upsert({ key: \"x-date\", value: xDate });\r",
+											"pm.request.headers.upsert({ key: \"Authorization\", value: authHeader });\r",
+											"if(method === \"POST\" && contentMD5) {\r",
+											"    pm.request.headers.upsert({ key: \"Content-MD5\", value: contentMD5 });\r",
+											"}\r",
+											"\r",
+											"console.log(\"Final Headers:\", pm.request.headers.toObject());\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Language",
+										"value": "zh-cn",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://css-open-platform.pudutech.com/pudu-entry/data-board/v1/brief/robot?start_time=1740358798&end_time=1740387720&shop_id=502250005&timezone_offset=0",
+									"protocol": "https",
+									"host": [
+										"css-open-platform",
+										"pudutech",
+										"com"
+									],
+									"path": [
+										"pudu-entry",
+										"data-board",
+										"v1",
+										"brief",
+										"robot"
+									],
+									"query": [
+										{
+											"key": "",
+											"value": "",
+											"disabled": true
+										},
+										{
+											"key": "start_time",
+											"value": "1740358798"
+										},
+										{
+											"key": "end_time",
+											"value": "1740387720"
+										},
+										{
+											"key": "shop_id",
+											"value": "502250005"
+										},
+										{
+											"key": "timezone_offset",
+											"value": "0"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "機器運行概覽",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const CryptoJS = require(\"crypto-js\");\r",
+											"// 1. 讀取環境變數（或使用預設值）\r",
+											"var apiAppKey = pm.environment.get(\"ApiAppKey\");\r",
+											"var apiAppSecret = pm.environment.get(\"ApiAppSecret\");\r",
+											"\r",
+											"// 2. 設定基本參數\r",
+											"var method = pm.request.method.toUpperCase(); // GET 或 POST\r",
+											"var accept = \"application/json\";\r",
+											"var contentType = \"application/json\";\r",
+											"var xDate = new Date().toUTCString();\r",
+											"var contentMD5 = \"\";\r",
+											"\r",
+											"// 3. 若為 POST 且有 Body，則計算 Content-MD5（GET 請求則留空）\r",
+											"if(method === \"POST\" && pm.request.body && pm.request.body.raw) {\r",
+											"    var body = pm.request.body.raw;\r",
+											"    var md5Hash = CryptoJS.MD5(body);\r",
+											"    contentMD5 = CryptoJS.enc.Base64.stringify(md5Hash);\r",
+											"}\r",
+											"\r",
+											"// 4. 取得 URL 的 path 及排序後的 query string\r",
+											"var urlObj = pm.request.url;\r",
+											"var path = urlObj.getPath(); // 取得 path（不含域名）\r",
+											"if(!path || path === \"\") {\r",
+											"    path = \"/\";\r",
+											"}\r",
+											"\r",
+											"if(urlObj.query && urlObj.query.count() > 0) {\r",
+											"    // 取得所有 query 參數並按字典排序\r",
+											"    var sortedQuery = urlObj.query.toObject();\r",
+											"    var keys = Object.keys(sortedQuery).sort();\r",
+											"    var queryArr = [];\r",
+											"    keys.forEach(function(key) {\r",
+											"        // 若值為空，只保留 key，否則將值進行 decode\r",
+											"        if(sortedQuery[key] === \"\") {\r",
+											"            queryArr.push(key);\r",
+											"        } else {\r",
+											"            queryArr.push(key + \"=\" + decodeURIComponent(sortedQuery[key]));\r",
+											"        }\r",
+											"    });\r",
+											"    path += \"?\" + queryArr.join(\"&\");\r",
+											"}\r",
+											"\r",
+											"// 5. 組合簽名字串（每個部分以換行符分隔）\r",
+											"var stringToSign = \"x-date: \" + xDate + \"\\n\" +\r",
+											"                   method + \"\\n\" +\r",
+											"                   accept + \"\\n\" +\r",
+											"                   contentType + \"\\n\" +\r",
+											"                   contentMD5 + \"\\n\" +\r",
+											"                   path;\r",
+											"console.log(\"stringToSign:\\n\" + stringToSign);\r",
+											"\r",
+											"// 6. 計算 HMAC-SHA1 簽名並進行 Base64 編碼\r",
+											"var signature = CryptoJS.HmacSHA1(stringToSign, apiAppSecret);\r",
+											"var signatureBase64 = CryptoJS.enc.Base64.stringify(signature);\r",
+											"console.log(\"Signature Base64:\", signatureBase64);\r",
+											"\r",
+											"// 7. 組合 Authorization header\r",
+											"var authHeader = 'hmac id=\"' + apiAppKey + '\", algorithm=\"hmac-sha1\", headers=\"x-date\", signature=\"' + signatureBase64 + '\"';\r",
+											"\r",
+											"// 8. 將 Header 加入請求（注意 Host 處理）\r",
+											"var hostStr = Array.isArray(pm.request.url.host) ? pm.request.url.host.join(\".\") : pm.request.url.host;\r",
+											"pm.request.headers.upsert({ key: \"Host\", value: hostStr });\r",
+											"pm.request.headers.upsert({ key: \"Accept\", value: accept });\r",
+											"pm.request.headers.upsert({ key: \"Content-Type\", value: contentType });\r",
+											"pm.request.headers.upsert({ key: \"x-date\", value: xDate });\r",
+											"pm.request.headers.upsert({ key: \"Authorization\", value: authHeader });\r",
+											"if(method === \"POST\" && contentMD5) {\r",
+											"    pm.request.headers.upsert({ key: \"Content-MD5\", value: contentMD5 });\r",
+											"}\r",
+											"\r",
+											"console.log(\"Final Headers:\", pm.request.headers.toObject());\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://css-open-platform.pudutech.com/pudu-entry/data-board/v1/brief/run?Language=zh-cn&start_time=1740358798&end_time=1740387720&shop_id=502250005&timezone_offset=0",
+									"protocol": "https",
+									"host": [
+										"css-open-platform",
+										"pudutech",
+										"com"
+									],
+									"path": [
+										"pudu-entry",
+										"data-board",
+										"v1",
+										"brief",
+										"run"
+									],
+									"query": [
+										{
+											"key": "Language",
+											"value": "zh-cn"
+										},
+										{
+											"key": "start_time",
+											"value": "1740358798"
+										},
+										{
+											"key": "end_time",
+											"value": "1740387720"
+										},
+										{
+											"key": "shop_id",
+											"value": "502250005"
+										},
+										{
+											"key": "timezone_offset",
+											"value": "0"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "店鋪概覽",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const CryptoJS = require(\"crypto-js\");\r",
+											"// 1. 讀取環境變數（或使用預設值）\r",
+											"var apiAppKey = pm.environment.get(\"ApiAppKey\");\r",
+											"var apiAppSecret = pm.environment.get(\"ApiAppSecret\");\r",
+											"\r",
+											"// 2. 設定基本參數\r",
+											"var method = pm.request.method.toUpperCase(); // GET 或 POST\r",
+											"var accept = \"application/json\";\r",
+											"var contentType = \"application/json\";\r",
+											"var xDate = new Date().toUTCString();\r",
+											"var contentMD5 = \"\";\r",
+											"\r",
+											"// 3. 若為 POST 且有 Body，則計算 Content-MD5（GET 請求則留空）\r",
+											"if(method === \"POST\" && pm.request.body && pm.request.body.raw) {\r",
+											"    var body = pm.request.body.raw;\r",
+											"    var md5Hash = CryptoJS.MD5(body);\r",
+											"    contentMD5 = CryptoJS.enc.Base64.stringify(md5Hash);\r",
+											"}\r",
+											"\r",
+											"// 4. 取得 URL 的 path 及排序後的 query string\r",
+											"var urlObj = pm.request.url;\r",
+											"var path = urlObj.getPath(); // 取得 path（不含域名）\r",
+											"if(!path || path === \"\") {\r",
+											"    path = \"/\";\r",
+											"}\r",
+											"\r",
+											"if(urlObj.query && urlObj.query.count() > 0) {\r",
+											"    // 取得所有 query 參數並按字典排序\r",
+											"    var sortedQuery = urlObj.query.toObject();\r",
+											"    var keys = Object.keys(sortedQuery).sort();\r",
+											"    var queryArr = [];\r",
+											"    keys.forEach(function(key) {\r",
+											"        // 若值為空，只保留 key，否則將值進行 decode\r",
+											"        if(sortedQuery[key] === \"\") {\r",
+											"            queryArr.push(key);\r",
+											"        } else {\r",
+											"            queryArr.push(key + \"=\" + decodeURIComponent(sortedQuery[key]));\r",
+											"        }\r",
+											"    });\r",
+											"    path += \"?\" + queryArr.join(\"&\");\r",
+											"}\r",
+											"\r",
+											"// 5. 組合簽名字串（每個部分以換行符分隔）\r",
+											"var stringToSign = \"x-date: \" + xDate + \"\\n\" +\r",
+											"                   method + \"\\n\" +\r",
+											"                   accept + \"\\n\" +\r",
+											"                   contentType + \"\\n\" +\r",
+											"                   contentMD5 + \"\\n\" +\r",
+											"                   path;\r",
+											"console.log(\"stringToSign:\\n\" + stringToSign);\r",
+											"\r",
+											"// 6. 計算 HMAC-SHA1 簽名並進行 Base64 編碼\r",
+											"var signature = CryptoJS.HmacSHA1(stringToSign, apiAppSecret);\r",
+											"var signatureBase64 = CryptoJS.enc.Base64.stringify(signature);\r",
+											"console.log(\"Signature Base64:\", signatureBase64);\r",
+											"\r",
+											"// 7. 組合 Authorization header\r",
+											"var authHeader = 'hmac id=\"' + apiAppKey + '\", algorithm=\"hmac-sha1\", headers=\"x-date\", signature=\"' + signatureBase64 + '\"';\r",
+											"\r",
+											"// 8. 將 Header 加入請求（注意 Host 處理）\r",
+											"var hostStr = Array.isArray(pm.request.url.host) ? pm.request.url.host.join(\".\") : pm.request.url.host;\r",
+											"pm.request.headers.upsert({ key: \"Host\", value: hostStr });\r",
+											"pm.request.headers.upsert({ key: \"Accept\", value: accept });\r",
+											"pm.request.headers.upsert({ key: \"Content-Type\", value: contentType });\r",
+											"pm.request.headers.upsert({ key: \"x-date\", value: xDate });\r",
+											"pm.request.headers.upsert({ key: \"Authorization\", value: authHeader });\r",
+											"if(method === \"POST\" && contentMD5) {\r",
+											"    pm.request.headers.upsert({ key: \"Content-MD5\", value: contentMD5 });\r",
+											"}\r",
+											"\r",
+											"console.log(\"Final Headers:\", pm.request.headers.toObject());\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://css-open-platform.pudutech.com/pudu-entry/data-board/v1/brief/shop?Language=zh-cn&start_time=1740358798&end_time=1740387720&shop_id=502250005&timezone_offset=0",
+									"protocol": "https",
+									"host": [
+										"css-open-platform",
+										"pudutech",
+										"com"
+									],
+									"path": [
+										"pudu-entry",
+										"data-board",
+										"v1",
+										"brief",
+										"shop"
+									],
+									"query": [
+										{
+											"key": "Language",
+											"value": "zh-cn"
+										},
+										{
+											"key": "start_time",
+											"value": "1740358798"
+										},
+										{
+											"key": "end_time",
+											"value": "1740387720"
+										},
+										{
+											"key": "shop_id",
+											"value": "502250005"
+										},
+										{
+											"key": "timezone_offset",
+											"value": "0"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "通用分析數據",
+					"item": [
+						{
+							"name": "店鋪分析",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const CryptoJS = require(\"crypto-js\");\r",
+											"// 1. 讀取環境變數（或使用預設值）\r",
+											"var apiAppKey = pm.environment.get(\"ApiAppKey\");\r",
+											"var apiAppSecret = pm.environment.get(\"ApiAppSecret\");\r",
+											"\r",
+											"// 2. 設定基本參數\r",
+											"var method = pm.request.method.toUpperCase(); // GET 或 POST\r",
+											"var accept = \"application/json\";\r",
+											"var contentType = \"application/json\";\r",
+											"var xDate = new Date().toUTCString();\r",
+											"var contentMD5 = \"\";\r",
+											"\r",
+											"// 3. 若為 POST 且有 Body，則計算 Content-MD5（GET 請求則留空）\r",
+											"if(method === \"POST\" && pm.request.body && pm.request.body.raw) {\r",
+											"    var body = pm.request.body.raw;\r",
+											"    var md5Hash = CryptoJS.MD5(body);\r",
+											"    contentMD5 = CryptoJS.enc.Base64.stringify(md5Hash);\r",
+											"}\r",
+											"\r",
+											"// 4. 取得 URL 的 path 及排序後的 query string\r",
+											"var urlObj = pm.request.url;\r",
+											"var path = urlObj.getPath(); // 取得 path（不含域名）\r",
+											"if(!path || path === \"\") {\r",
+											"    path = \"/\";\r",
+											"}\r",
+											"\r",
+											"if(urlObj.query && urlObj.query.count() > 0) {\r",
+											"    // 取得所有 query 參數並按字典排序\r",
+											"    var sortedQuery = urlObj.query.toObject();\r",
+											"    var keys = Object.keys(sortedQuery).sort();\r",
+											"    var queryArr = [];\r",
+											"    keys.forEach(function(key) {\r",
+											"        // 若值為空，只保留 key，否則將值進行 decode\r",
+											"        if(sortedQuery[key] === \"\") {\r",
+											"            queryArr.push(key);\r",
+											"        } else {\r",
+											"            queryArr.push(key + \"=\" + decodeURIComponent(sortedQuery[key]));\r",
+											"        }\r",
+											"    });\r",
+											"    path += \"?\" + queryArr.join(\"&\");\r",
+											"}\r",
+											"\r",
+											"// 5. 組合簽名字串（每個部分以換行符分隔）\r",
+											"var stringToSign = \"x-date: \" + xDate + \"\\n\" +\r",
+											"                   method + \"\\n\" +\r",
+											"                   accept + \"\\n\" +\r",
+											"                   contentType + \"\\n\" +\r",
+											"                   contentMD5 + \"\\n\" +\r",
+											"                   path;\r",
+											"console.log(\"stringToSign:\\n\" + stringToSign);\r",
+											"\r",
+											"// 6. 計算 HMAC-SHA1 簽名並進行 Base64 編碼\r",
+											"var signature = CryptoJS.HmacSHA1(stringToSign, apiAppSecret);\r",
+											"var signatureBase64 = CryptoJS.enc.Base64.stringify(signature);\r",
+											"console.log(\"Signature Base64:\", signatureBase64);\r",
+											"\r",
+											"// 7. 組合 Authorization header\r",
+											"var authHeader = 'hmac id=\"' + apiAppKey + '\", algorithm=\"hmac-sha1\", headers=\"x-date\", signature=\"' + signatureBase64 + '\"';\r",
+											"\r",
+											"// 8. 將 Header 加入請求（注意 Host 處理）\r",
+											"var hostStr = Array.isArray(pm.request.url.host) ? pm.request.url.host.join(\".\") : pm.request.url.host;\r",
+											"pm.request.headers.upsert({ key: \"Host\", value: hostStr });\r",
+											"pm.request.headers.upsert({ key: \"Accept\", value: accept });\r",
+											"pm.request.headers.upsert({ key: \"Content-Type\", value: contentType });\r",
+											"pm.request.headers.upsert({ key: \"x-date\", value: xDate });\r",
+											"pm.request.headers.upsert({ key: \"Authorization\", value: authHeader });\r",
+											"if(method === \"POST\" && contentMD5) {\r",
+											"    pm.request.headers.upsert({ key: \"Content-MD5\", value: contentMD5 });\r",
+											"}\r",
+											"\r",
+											"console.log(\"Final Headers:\", pm.request.headers.toObject());\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://css-open-platform.pudutech.com/pudu-entry/data-board/v1/analysis/shop?Language=zh-cn&start_time=1740358798&end_time=1740387720&shop_id=502250005&timezone_offset=0&time_unit=hour",
+									"protocol": "https",
+									"host": [
+										"css-open-platform",
+										"pudutech",
+										"com"
+									],
+									"path": [
+										"pudu-entry",
+										"data-board",
+										"v1",
+										"analysis",
+										"shop"
+									],
+									"query": [
+										{
+											"key": "Language",
+											"value": "zh-cn"
+										},
+										{
+											"key": "start_time",
+											"value": "1740358798"
+										},
+										{
+											"key": "end_time",
+											"value": "1740387720"
+										},
+										{
+											"key": "shop_id",
+											"value": "502250005"
+										},
+										{
+											"key": "timezone_offset",
+											"value": "0"
+										},
+										{
+											"key": "time_unit",
+											"value": "hour"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "店鋪分析(分頁)",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const CryptoJS = require(\"crypto-js\");\r",
+											"// 1. 讀取環境變數（或使用預設值）\r",
+											"var apiAppKey = pm.environment.get(\"ApiAppKey\");\r",
+											"var apiAppSecret = pm.environment.get(\"ApiAppSecret\");\r",
+											"\r",
+											"// 2. 設定基本參數\r",
+											"var method = pm.request.method.toUpperCase(); // GET 或 POST\r",
+											"var accept = \"application/json\";\r",
+											"var contentType = \"application/json\";\r",
+											"var xDate = new Date().toUTCString();\r",
+											"var contentMD5 = \"\";\r",
+											"\r",
+											"// 3. 若為 POST 且有 Body，則計算 Content-MD5（GET 請求則留空）\r",
+											"if(method === \"POST\" && pm.request.body && pm.request.body.raw) {\r",
+											"    var body = pm.request.body.raw;\r",
+											"    var md5Hash = CryptoJS.MD5(body);\r",
+											"    contentMD5 = CryptoJS.enc.Base64.stringify(md5Hash);\r",
+											"}\r",
+											"\r",
+											"// 4. 取得 URL 的 path 及排序後的 query string\r",
+											"var urlObj = pm.request.url;\r",
+											"var path = urlObj.getPath(); // 取得 path（不含域名）\r",
+											"if(!path || path === \"\") {\r",
+											"    path = \"/\";\r",
+											"}\r",
+											"\r",
+											"if(urlObj.query && urlObj.query.count() > 0) {\r",
+											"    // 取得所有 query 參數並按字典排序\r",
+											"    var sortedQuery = urlObj.query.toObject();\r",
+											"    var keys = Object.keys(sortedQuery).sort();\r",
+											"    var queryArr = [];\r",
+											"    keys.forEach(function(key) {\r",
+											"        // 若值為空，只保留 key，否則將值進行 decode\r",
+											"        if(sortedQuery[key] === \"\") {\r",
+											"            queryArr.push(key);\r",
+											"        } else {\r",
+											"            queryArr.push(key + \"=\" + decodeURIComponent(sortedQuery[key]));\r",
+											"        }\r",
+											"    });\r",
+											"    path += \"?\" + queryArr.join(\"&\");\r",
+											"}\r",
+											"\r",
+											"// 5. 組合簽名字串（每個部分以換行符分隔）\r",
+											"var stringToSign = \"x-date: \" + xDate + \"\\n\" +\r",
+											"                   method + \"\\n\" +\r",
+											"                   accept + \"\\n\" +\r",
+											"                   contentType + \"\\n\" +\r",
+											"                   contentMD5 + \"\\n\" +\r",
+											"                   path;\r",
+											"console.log(\"stringToSign:\\n\" + stringToSign);\r",
+											"\r",
+											"// 6. 計算 HMAC-SHA1 簽名並進行 Base64 編碼\r",
+											"var signature = CryptoJS.HmacSHA1(stringToSign, apiAppSecret);\r",
+											"var signatureBase64 = CryptoJS.enc.Base64.stringify(signature);\r",
+											"console.log(\"Signature Base64:\", signatureBase64);\r",
+											"\r",
+											"// 7. 組合 Authorization header\r",
+											"var authHeader = 'hmac id=\"' + apiAppKey + '\", algorithm=\"hmac-sha1\", headers=\"x-date\", signature=\"' + signatureBase64 + '\"';\r",
+											"\r",
+											"// 8. 將 Header 加入請求（注意 Host 處理）\r",
+											"var hostStr = Array.isArray(pm.request.url.host) ? pm.request.url.host.join(\".\") : pm.request.url.host;\r",
+											"pm.request.headers.upsert({ key: \"Host\", value: hostStr });\r",
+											"pm.request.headers.upsert({ key: \"Accept\", value: accept });\r",
+											"pm.request.headers.upsert({ key: \"Content-Type\", value: contentType });\r",
+											"pm.request.headers.upsert({ key: \"x-date\", value: xDate });\r",
+											"pm.request.headers.upsert({ key: \"Authorization\", value: authHeader });\r",
+											"if(method === \"POST\" && contentMD5) {\r",
+											"    pm.request.headers.upsert({ key: \"Content-MD5\", value: contentMD5 });\r",
+											"}\r",
+											"\r",
+											"console.log(\"Final Headers:\", pm.request.headers.toObject());\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://css-open-platform.pudutech.com/pudu-entry/data-board/v1/analysis/shop/paging?Language=zh-cn&start_time=1740358798&end_time=1740387720&shop_id=502250005&offset=0&limit=10&timezone_offset=0",
+									"protocol": "https",
+									"host": [
+										"css-open-platform",
+										"pudutech",
+										"com"
+									],
+									"path": [
+										"pudu-entry",
+										"data-board",
+										"v1",
+										"analysis",
+										"shop",
+										"paging"
+									],
+									"query": [
+										{
+											"key": "Language",
+											"value": "zh-cn"
+										},
+										{
+											"key": "start_time",
+											"value": "1740358798"
+										},
+										{
+											"key": "end_time",
+											"value": "1740387720"
+										},
+										{
+											"key": "shop_id",
+											"value": "502250005"
+										},
+										{
+											"key": "offset",
+											"value": "0"
+										},
+										{
+											"key": "limit",
+											"value": "10"
+										},
+										{
+											"key": "timezone_offset",
+											"value": "0"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "機器運行分析",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const CryptoJS = require(\"crypto-js\");\r",
+											"// 1. 讀取環境變數（或使用預設值）\r",
+											"var apiAppKey = pm.environment.get(\"ApiAppKey\");\r",
+											"var apiAppSecret = pm.environment.get(\"ApiAppSecret\");\r",
+											"\r",
+											"// 2. 設定基本參數\r",
+											"var method = pm.request.method.toUpperCase(); // GET 或 POST\r",
+											"var accept = \"application/json\";\r",
+											"var contentType = \"application/json\";\r",
+											"var xDate = new Date().toUTCString();\r",
+											"var contentMD5 = \"\";\r",
+											"\r",
+											"// 3. 若為 POST 且有 Body，則計算 Content-MD5（GET 請求則留空）\r",
+											"if(method === \"POST\" && pm.request.body && pm.request.body.raw) {\r",
+											"    var body = pm.request.body.raw;\r",
+											"    var md5Hash = CryptoJS.MD5(body);\r",
+											"    contentMD5 = CryptoJS.enc.Base64.stringify(md5Hash);\r",
+											"}\r",
+											"\r",
+											"// 4. 取得 URL 的 path 及排序後的 query string\r",
+											"var urlObj = pm.request.url;\r",
+											"var path = urlObj.getPath(); // 取得 path（不含域名）\r",
+											"if(!path || path === \"\") {\r",
+											"    path = \"/\";\r",
+											"}\r",
+											"\r",
+											"if(urlObj.query && urlObj.query.count() > 0) {\r",
+											"    // 取得所有 query 參數並按字典排序\r",
+											"    var sortedQuery = urlObj.query.toObject();\r",
+											"    var keys = Object.keys(sortedQuery).sort();\r",
+											"    var queryArr = [];\r",
+											"    keys.forEach(function(key) {\r",
+											"        // 若值為空，只保留 key，否則將值進行 decode\r",
+											"        if(sortedQuery[key] === \"\") {\r",
+											"            queryArr.push(key);\r",
+											"        } else {\r",
+											"            queryArr.push(key + \"=\" + decodeURIComponent(sortedQuery[key]));\r",
+											"        }\r",
+											"    });\r",
+											"    path += \"?\" + queryArr.join(\"&\");\r",
+											"}\r",
+											"\r",
+											"// 5. 組合簽名字串（每個部分以換行符分隔）\r",
+											"var stringToSign = \"x-date: \" + xDate + \"\\n\" +\r",
+											"                   method + \"\\n\" +\r",
+											"                   accept + \"\\n\" +\r",
+											"                   contentType + \"\\n\" +\r",
+											"                   contentMD5 + \"\\n\" +\r",
+											"                   path;\r",
+											"console.log(\"stringToSign:\\n\" + stringToSign);\r",
+											"\r",
+											"// 6. 計算 HMAC-SHA1 簽名並進行 Base64 編碼\r",
+											"var signature = CryptoJS.HmacSHA1(stringToSign, apiAppSecret);\r",
+											"var signatureBase64 = CryptoJS.enc.Base64.stringify(signature);\r",
+											"console.log(\"Signature Base64:\", signatureBase64);\r",
+											"\r",
+											"// 7. 組合 Authorization header\r",
+											"var authHeader = 'hmac id=\"' + apiAppKey + '\", algorithm=\"hmac-sha1\", headers=\"x-date\", signature=\"' + signatureBase64 + '\"';\r",
+											"\r",
+											"// 8. 將 Header 加入請求（注意 Host 處理）\r",
+											"var hostStr = Array.isArray(pm.request.url.host) ? pm.request.url.host.join(\".\") : pm.request.url.host;\r",
+											"pm.request.headers.upsert({ key: \"Host\", value: hostStr });\r",
+											"pm.request.headers.upsert({ key: \"Accept\", value: accept });\r",
+											"pm.request.headers.upsert({ key: \"Content-Type\", value: contentType });\r",
+											"pm.request.headers.upsert({ key: \"x-date\", value: xDate });\r",
+											"pm.request.headers.upsert({ key: \"Authorization\", value: authHeader });\r",
+											"if(method === \"POST\" && contentMD5) {\r",
+											"    pm.request.headers.upsert({ key: \"Content-MD5\", value: contentMD5 });\r",
+											"}\r",
+											"\r",
+											"console.log(\"Final Headers:\", pm.request.headers.toObject());\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://css-open-platform.pudutech.com/pudu-entry/data-board/v1/analysis/run?Language=zh-cn&start_time=1740358798&end_time=1740387720&shop_id=502250005&time_unit=day&timezone_offset=0",
+									"protocol": "https",
+									"host": [
+										"css-open-platform",
+										"pudutech",
+										"com"
+									],
+									"path": [
+										"pudu-entry",
+										"data-board",
+										"v1",
+										"analysis",
+										"run"
+									],
+									"query": [
+										{
+											"key": "Language",
+											"value": "zh-cn"
+										},
+										{
+											"key": "start_time",
+											"value": "1740358798"
+										},
+										{
+											"key": "end_time",
+											"value": "1740387720"
+										},
+										{
+											"key": "shop_id",
+											"value": "502250005"
+										},
+										{
+											"key": "time_unit",
+											"value": "day"
+										},
+										{
+											"key": "timezone_offset",
+											"value": "0"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "日誌資料",
+					"item": [
+						{
+							"name": "開機自檢日誌",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const CryptoJS = require(\"crypto-js\");\r",
+											"// 1. 讀取環境變數（或使用預設值）\r",
+											"var apiAppKey = pm.environment.get(\"ApiAppKey\");\r",
+											"var apiAppSecret = pm.environment.get(\"ApiAppSecret\");\r",
+											"\r",
+											"// 2. 設定基本參數\r",
+											"var method = pm.request.method.toUpperCase(); // GET 或 POST\r",
+											"var accept = \"application/json\";\r",
+											"var contentType = \"application/json\";\r",
+											"var xDate = new Date().toUTCString();\r",
+											"var contentMD5 = \"\";\r",
+											"\r",
+											"// 3. 若為 POST 且有 Body，則計算 Content-MD5（GET 請求則留空）\r",
+											"if(method === \"POST\" && pm.request.body && pm.request.body.raw) {\r",
+											"    var body = pm.request.body.raw;\r",
+											"    var md5Hash = CryptoJS.MD5(body);\r",
+											"    contentMD5 = CryptoJS.enc.Base64.stringify(md5Hash);\r",
+											"}\r",
+											"\r",
+											"// 4. 取得 URL 的 path 及排序後的 query string\r",
+											"var urlObj = pm.request.url;\r",
+											"var path = urlObj.getPath(); // 取得 path（不含域名）\r",
+											"if(!path || path === \"\") {\r",
+											"    path = \"/\";\r",
+											"}\r",
+											"\r",
+											"if(urlObj.query && urlObj.query.count() > 0) {\r",
+											"    // 取得所有 query 參數並按字典排序\r",
+											"    var sortedQuery = urlObj.query.toObject();\r",
+											"    var keys = Object.keys(sortedQuery).sort();\r",
+											"    var queryArr = [];\r",
+											"    keys.forEach(function(key) {\r",
+											"        // 若值為空，只保留 key，否則將值進行 decode\r",
+											"        if(sortedQuery[key] === \"\") {\r",
+											"            queryArr.push(key);\r",
+											"        } else {\r",
+											"            queryArr.push(key + \"=\" + decodeURIComponent(sortedQuery[key]));\r",
+											"        }\r",
+											"    });\r",
+											"    path += \"?\" + queryArr.join(\"&\");\r",
+											"}\r",
+											"\r",
+											"// 5. 組合簽名字串（每個部分以換行符分隔）\r",
+											"var stringToSign = \"x-date: \" + xDate + \"\\n\" +\r",
+											"                   method + \"\\n\" +\r",
+											"                   accept + \"\\n\" +\r",
+											"                   contentType + \"\\n\" +\r",
+											"                   contentMD5 + \"\\n\" +\r",
+											"                   path;\r",
+											"console.log(\"stringToSign:\\n\" + stringToSign);\r",
+											"\r",
+											"// 6. 計算 HMAC-SHA1 簽名並進行 Base64 編碼\r",
+											"var signature = CryptoJS.HmacSHA1(stringToSign, apiAppSecret);\r",
+											"var signatureBase64 = CryptoJS.enc.Base64.stringify(signature);\r",
+											"console.log(\"Signature Base64:\", signatureBase64);\r",
+											"\r",
+											"// 7. 組合 Authorization header\r",
+											"var authHeader = 'hmac id=\"' + apiAppKey + '\", algorithm=\"hmac-sha1\", headers=\"x-date\", signature=\"' + signatureBase64 + '\"';\r",
+											"\r",
+											"// 8. 將 Header 加入請求（注意 Host 處理）\r",
+											"var hostStr = Array.isArray(pm.request.url.host) ? pm.request.url.host.join(\".\") : pm.request.url.host;\r",
+											"pm.request.headers.upsert({ key: \"Host\", value: hostStr });\r",
+											"pm.request.headers.upsert({ key: \"Accept\", value: accept });\r",
+											"pm.request.headers.upsert({ key: \"Content-Type\", value: contentType });\r",
+											"pm.request.headers.upsert({ key: \"x-date\", value: xDate });\r",
+											"pm.request.headers.upsert({ key: \"Authorization\", value: authHeader });\r",
+											"if(method === \"POST\" && contentMD5) {\r",
+											"    pm.request.headers.upsert({ key: \"Content-MD5\", value: contentMD5 });\r",
+											"}\r",
+											"\r",
+											"console.log(\"Final Headers:\", pm.request.headers.toObject());\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://css-open-platform.pudutech.com/pudu-entry/data-board/v1/log/boot/query_list?Language=zh-cn&start_time=1740358798&end_time=1740387720&shop_id=502250005&time_unit=day&timezone_offset=0&offset=0&limit=10",
+									"protocol": "https",
+									"host": [
+										"css-open-platform",
+										"pudutech",
+										"com"
+									],
+									"path": [
+										"pudu-entry",
+										"data-board",
+										"v1",
+										"log",
+										"boot",
+										"query_list"
+									],
+									"query": [
+										{
+											"key": "Language",
+											"value": "zh-cn"
+										},
+										{
+											"key": "start_time",
+											"value": "1740358798"
+										},
+										{
+											"key": "end_time",
+											"value": "1740387720"
+										},
+										{
+											"key": "shop_id",
+											"value": "502250005"
+										},
+										{
+											"key": "time_unit",
+											"value": "day"
+										},
+										{
+											"key": "timezone_offset",
+											"value": "0"
+										},
+										{
+											"key": "offset",
+											"value": "0"
+										},
+										{
+											"key": "limit",
+											"value": "10"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "故障事件日誌",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const CryptoJS = require(\"crypto-js\");\r",
+											"// 1. 讀取環境變數（或使用預設值）\r",
+											"var apiAppKey = pm.environment.get(\"ApiAppKey\");\r",
+											"var apiAppSecret = pm.environment.get(\"ApiAppSecret\");\r",
+											"\r",
+											"// 2. 設定基本參數\r",
+											"var method = pm.request.method.toUpperCase(); // GET 或 POST\r",
+											"var accept = \"application/json\";\r",
+											"var contentType = \"application/json\";\r",
+											"var xDate = new Date().toUTCString();\r",
+											"var contentMD5 = \"\";\r",
+											"\r",
+											"// 3. 若為 POST 且有 Body，則計算 Content-MD5（GET 請求則留空）\r",
+											"if(method === \"POST\" && pm.request.body && pm.request.body.raw) {\r",
+											"    var body = pm.request.body.raw;\r",
+											"    var md5Hash = CryptoJS.MD5(body);\r",
+											"    contentMD5 = CryptoJS.enc.Base64.stringify(md5Hash);\r",
+											"}\r",
+											"\r",
+											"// 4. 取得 URL 的 path 及排序後的 query string\r",
+											"var urlObj = pm.request.url;\r",
+											"var path = urlObj.getPath(); // 取得 path（不含域名）\r",
+											"if(!path || path === \"\") {\r",
+											"    path = \"/\";\r",
+											"}\r",
+											"\r",
+											"if(urlObj.query && urlObj.query.count() > 0) {\r",
+											"    // 取得所有 query 參數並按字典排序\r",
+											"    var sortedQuery = urlObj.query.toObject();\r",
+											"    var keys = Object.keys(sortedQuery).sort();\r",
+											"    var queryArr = [];\r",
+											"    keys.forEach(function(key) {\r",
+											"        // 若值為空，只保留 key，否則將值進行 decode\r",
+											"        if(sortedQuery[key] === \"\") {\r",
+											"            queryArr.push(key);\r",
+											"        } else {\r",
+											"            queryArr.push(key + \"=\" + decodeURIComponent(sortedQuery[key]));\r",
+											"        }\r",
+											"    });\r",
+											"    path += \"?\" + queryArr.join(\"&\");\r",
+											"}\r",
+											"\r",
+											"// 5. 組合簽名字串（每個部分以換行符分隔）\r",
+											"var stringToSign = \"x-date: \" + xDate + \"\\n\" +\r",
+											"                   method + \"\\n\" +\r",
+											"                   accept + \"\\n\" +\r",
+											"                   contentType + \"\\n\" +\r",
+											"                   contentMD5 + \"\\n\" +\r",
+											"                   path;\r",
+											"console.log(\"stringToSign:\\n\" + stringToSign);\r",
+											"\r",
+											"// 6. 計算 HMAC-SHA1 簽名並進行 Base64 編碼\r",
+											"var signature = CryptoJS.HmacSHA1(stringToSign, apiAppSecret);\r",
+											"var signatureBase64 = CryptoJS.enc.Base64.stringify(signature);\r",
+											"console.log(\"Signature Base64:\", signatureBase64);\r",
+											"\r",
+											"// 7. 組合 Authorization header\r",
+											"var authHeader = 'hmac id=\"' + apiAppKey + '\", algorithm=\"hmac-sha1\", headers=\"x-date\", signature=\"' + signatureBase64 + '\"';\r",
+											"\r",
+											"// 8. 將 Header 加入請求（注意 Host 處理）\r",
+											"var hostStr = Array.isArray(pm.request.url.host) ? pm.request.url.host.join(\".\") : pm.request.url.host;\r",
+											"pm.request.headers.upsert({ key: \"Host\", value: hostStr });\r",
+											"pm.request.headers.upsert({ key: \"Accept\", value: accept });\r",
+											"pm.request.headers.upsert({ key: \"Content-Type\", value: contentType });\r",
+											"pm.request.headers.upsert({ key: \"x-date\", value: xDate });\r",
+											"pm.request.headers.upsert({ key: \"Authorization\", value: authHeader });\r",
+											"if(method === \"POST\" && contentMD5) {\r",
+											"    pm.request.headers.upsert({ key: \"Content-MD5\", value: contentMD5 });\r",
+											"}\r",
+											"\r",
+											"console.log(\"Final Headers:\", pm.request.headers.toObject());\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://css-open-platform.pudutech.com/pudu-entry/data-board/v1/log/error/query_list?Language=zh-cn&start_time=1740358798&end_time=1740387720&shop_id=502250005&time_unit=day&timezone_offset=0&offset=0&limit=10",
+									"protocol": "https",
+									"host": [
+										"css-open-platform",
+										"pudutech",
+										"com"
+									],
+									"path": [
+										"pudu-entry",
+										"data-board",
+										"v1",
+										"log",
+										"error",
+										"query_list"
+									],
+									"query": [
+										{
+											"key": "Language",
+											"value": "zh-cn"
+										},
+										{
+											"key": "start_time",
+											"value": "1740358798"
+										},
+										{
+											"key": "end_time",
+											"value": "1740387720"
+										},
+										{
+											"key": "shop_id",
+											"value": "502250005"
+										},
+										{
+											"key": "time_unit",
+											"value": "day"
+										},
+										{
+											"key": "timezone_offset",
+											"value": "0"
+										},
+										{
+											"key": "offset",
+											"value": "0"
+										},
+										{
+											"key": "limit",
+											"value": "10"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "充電記錄",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const CryptoJS = require(\"crypto-js\");\r",
+											"// 1. 讀取環境變數（或使用預設值）\r",
+											"var apiAppKey = pm.environment.get(\"ApiAppKey\");\r",
+											"var apiAppSecret = pm.environment.get(\"ApiAppSecret\");\r",
+											"\r",
+											"// 2. 設定基本參數\r",
+											"var method = pm.request.method.toUpperCase(); // GET 或 POST\r",
+											"var accept = \"application/json\";\r",
+											"var contentType = \"application/json\";\r",
+											"var xDate = new Date().toUTCString();\r",
+											"var contentMD5 = \"\";\r",
+											"\r",
+											"// 3. 若為 POST 且有 Body，則計算 Content-MD5（GET 請求則留空）\r",
+											"if(method === \"POST\" && pm.request.body && pm.request.body.raw) {\r",
+											"    var body = pm.request.body.raw;\r",
+											"    var md5Hash = CryptoJS.MD5(body);\r",
+											"    contentMD5 = CryptoJS.enc.Base64.stringify(md5Hash);\r",
+											"}\r",
+											"\r",
+											"// 4. 取得 URL 的 path 及排序後的 query string\r",
+											"var urlObj = pm.request.url;\r",
+											"var path = urlObj.getPath(); // 取得 path（不含域名）\r",
+											"if(!path || path === \"\") {\r",
+											"    path = \"/\";\r",
+											"}\r",
+											"\r",
+											"if(urlObj.query && urlObj.query.count() > 0) {\r",
+											"    // 取得所有 query 參數並按字典排序\r",
+											"    var sortedQuery = urlObj.query.toObject();\r",
+											"    var keys = Object.keys(sortedQuery).sort();\r",
+											"    var queryArr = [];\r",
+											"    keys.forEach(function(key) {\r",
+											"        // 若值為空，只保留 key，否則將值進行 decode\r",
+											"        if(sortedQuery[key] === \"\") {\r",
+											"            queryArr.push(key);\r",
+											"        } else {\r",
+											"            queryArr.push(key + \"=\" + decodeURIComponent(sortedQuery[key]));\r",
+											"        }\r",
+											"    });\r",
+											"    path += \"?\" + queryArr.join(\"&\");\r",
+											"}\r",
+											"\r",
+											"// 5. 組合簽名字串（每個部分以換行符分隔）\r",
+											"var stringToSign = \"x-date: \" + xDate + \"\\n\" +\r",
+											"                   method + \"\\n\" +\r",
+											"                   accept + \"\\n\" +\r",
+											"                   contentType + \"\\n\" +\r",
+											"                   contentMD5 + \"\\n\" +\r",
+											"                   path;\r",
+											"console.log(\"stringToSign:\\n\" + stringToSign);\r",
+											"\r",
+											"// 6. 計算 HMAC-SHA1 簽名並進行 Base64 編碼\r",
+											"var signature = CryptoJS.HmacSHA1(stringToSign, apiAppSecret);\r",
+											"var signatureBase64 = CryptoJS.enc.Base64.stringify(signature);\r",
+											"console.log(\"Signature Base64:\", signatureBase64);\r",
+											"\r",
+											"// 7. 組合 Authorization header\r",
+											"var authHeader = 'hmac id=\"' + apiAppKey + '\", algorithm=\"hmac-sha1\", headers=\"x-date\", signature=\"' + signatureBase64 + '\"';\r",
+											"\r",
+											"// 8. 將 Header 加入請求（注意 Host 處理）\r",
+											"var hostStr = Array.isArray(pm.request.url.host) ? pm.request.url.host.join(\".\") : pm.request.url.host;\r",
+											"pm.request.headers.upsert({ key: \"Host\", value: hostStr });\r",
+											"pm.request.headers.upsert({ key: \"Accept\", value: accept });\r",
+											"pm.request.headers.upsert({ key: \"Content-Type\", value: contentType });\r",
+											"pm.request.headers.upsert({ key: \"x-date\", value: xDate });\r",
+											"pm.request.headers.upsert({ key: \"Authorization\", value: authHeader });\r",
+											"if(method === \"POST\" && contentMD5) {\r",
+											"    pm.request.headers.upsert({ key: \"Content-MD5\", value: contentMD5 });\r",
+											"}\r",
+											"\r",
+											"console.log(\"Final Headers:\", pm.request.headers.toObject());\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://css-open-platform.pudutech.com/pudu-entry/data-board/v1/log/charge/query_list?Language=zh-cn&start_time=1740358798&end_time=1740387720&shop_id=502250005&time_unit=day&timezone_offset=0&offset=0&limit=10",
+									"protocol": "https",
+									"host": [
+										"css-open-platform",
+										"pudutech",
+										"com"
+									],
+									"path": [
+										"pudu-entry",
+										"data-board",
+										"v1",
+										"log",
+										"charge",
+										"query_list"
+									],
+									"query": [
+										{
+											"key": "Language",
+											"value": "zh-cn"
+										},
+										{
+											"key": "start_time",
+											"value": "1740358798"
+										},
+										{
+											"key": "end_time",
+											"value": "1740387720"
+										},
+										{
+											"key": "shop_id",
+											"value": "502250005"
+										},
+										{
+											"key": "time_unit",
+											"value": "day"
+										},
+										{
+											"key": "timezone_offset",
+											"value": "0"
+										},
+										{
+											"key": "offset",
+											"value": "0"
+										},
+										{
+											"key": "limit",
+											"value": "10"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "清潔線路",
+			"item": [
+				{
+					"name": "機器操作",
+					"item": [
+						{
+							"name": "任務列表",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const CryptoJS = require(\"crypto-js\");\r",
+											"// 1. 讀取環境變數（或使用預設值）\r",
+											"var apiAppKey = pm.environment.get(\"ApiAppKey\");\r",
+											"var apiAppSecret = pm.environment.get(\"ApiAppSecret\");\r",
+											"\r",
+											"// 2. 設定基本參數\r",
+											"var method = pm.request.method.toUpperCase(); // GET 或 POST\r",
+											"var accept = \"application/json\";\r",
+											"var contentType = \"application/json\";\r",
+											"var xDate = new Date().toUTCString();\r",
+											"var contentMD5 = \"\";\r",
+											"\r",
+											"// 3. 若為 POST 且有 Body，則計算 Content-MD5（GET 請求則留空）\r",
+											"if(method === \"POST\" && pm.request.body && pm.request.body.raw) {\r",
+											"    var body = pm.request.body.raw;\r",
+											"    var md5Hash = CryptoJS.MD5(body);\r",
+											"    contentMD5 = CryptoJS.enc.Base64.stringify(md5Hash);\r",
+											"}\r",
+											"\r",
+											"// 4. 取得 URL 的 path 及排序後的 query string\r",
+											"var urlObj = pm.request.url;\r",
+											"var path = urlObj.getPath(); // 取得 path（不含域名）\r",
+											"if(!path || path === \"\") {\r",
+											"    path = \"/\";\r",
+											"}\r",
+											"\r",
+											"if(urlObj.query && urlObj.query.count() > 0) {\r",
+											"    // 取得所有 query 參數並按字典排序\r",
+											"    var sortedQuery = urlObj.query.toObject();\r",
+											"    var keys = Object.keys(sortedQuery).sort();\r",
+											"    var queryArr = [];\r",
+											"    keys.forEach(function(key) {\r",
+											"        // 若值為空，只保留 key，否則將值進行 decode\r",
+											"        if(sortedQuery[key] === \"\") {\r",
+											"            queryArr.push(key);\r",
+											"        } else {\r",
+											"            queryArr.push(key + \"=\" + decodeURIComponent(sortedQuery[key]));\r",
+											"        }\r",
+											"    });\r",
+											"    path += \"?\" + queryArr.join(\"&\");\r",
+											"}\r",
+											"\r",
+											"// 5. 組合簽名字串（每個部分以換行符分隔）\r",
+											"var stringToSign = \"x-date: \" + xDate + \"\\n\" +\r",
+											"                   method + \"\\n\" +\r",
+											"                   accept + \"\\n\" +\r",
+											"                   contentType + \"\\n\" +\r",
+											"                   contentMD5 + \"\\n\" +\r",
+											"                   path;\r",
+											"console.log(\"stringToSign:\\n\" + stringToSign);\r",
+											"\r",
+											"// 6. 計算 HMAC-SHA1 簽名並進行 Base64 編碼\r",
+											"var signature = CryptoJS.HmacSHA1(stringToSign, apiAppSecret);\r",
+											"var signatureBase64 = CryptoJS.enc.Base64.stringify(signature);\r",
+											"console.log(\"Signature Base64:\", signatureBase64);\r",
+											"\r",
+											"// 7. 組合 Authorization header\r",
+											"var authHeader = 'hmac id=\"' + apiAppKey + '\", algorithm=\"hmac-sha1\", headers=\"x-date\", signature=\"' + signatureBase64 + '\"';\r",
+											"\r",
+											"// 8. 將 Header 加入請求（注意 Host 處理）\r",
+											"var hostStr = Array.isArray(pm.request.url.host) ? pm.request.url.host.join(\".\") : pm.request.url.host;\r",
+											"pm.request.headers.upsert({ key: \"Host\", value: hostStr });\r",
+											"pm.request.headers.upsert({ key: \"Accept\", value: accept });\r",
+											"pm.request.headers.upsert({ key: \"Content-Type\", value: contentType });\r",
+											"pm.request.headers.upsert({ key: \"x-date\", value: xDate });\r",
+											"pm.request.headers.upsert({ key: \"Authorization\", value: authHeader });\r",
+											"if(method === \"POST\" && contentMD5) {\r",
+											"    pm.request.headers.upsert({ key: \"Content-MD5\", value: contentMD5 });\r",
+											"}\r",
+											"\r",
+											"console.log(\"Final Headers:\", pm.request.headers.toObject());\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://css-open-platform.pudutech.com/pudu-entry/cleanbot-service/v1/api/open/task/list?shop_id=408250001",
+									"protocol": "https",
+									"host": [
+										"css-open-platform",
+										"pudutech",
+										"com"
+									],
+									"path": [
+										"pudu-entry",
+										"cleanbot-service",
+										"v1",
+										"api",
+										"open",
+										"task",
+										"list"
+									],
+									"query": [
+										{
+											"key": "shop_id",
+											"value": "408250001"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "機器人詳細狀態",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const CryptoJS = require(\"crypto-js\");\r",
+											"// 1. 讀取環境變數（或使用預設值）\r",
+											"var apiAppKey = pm.environment.get(\"ApiAppKey\");\r",
+											"var apiAppSecret = pm.environment.get(\"ApiAppSecret\");\r",
+											"\r",
+											"// 2. 設定基本參數\r",
+											"var method = pm.request.method.toUpperCase(); // GET 或 POST\r",
+											"var accept = \"application/json\";\r",
+											"var contentType = \"application/json\";\r",
+											"var xDate = new Date().toUTCString();\r",
+											"var contentMD5 = \"\";\r",
+											"\r",
+											"// 3. 若為 POST 且有 Body，則計算 Content-MD5（GET 請求則留空）\r",
+											"if(method === \"POST\" && pm.request.body && pm.request.body.raw) {\r",
+											"    var body = pm.request.body.raw;\r",
+											"    var md5Hash = CryptoJS.MD5(body);\r",
+											"    contentMD5 = CryptoJS.enc.Base64.stringify(md5Hash);\r",
+											"}\r",
+											"\r",
+											"// 4. 取得 URL 的 path 及排序後的 query string\r",
+											"var urlObj = pm.request.url;\r",
+											"var path = urlObj.getPath(); // 取得 path（不含域名）\r",
+											"if(!path || path === \"\") {\r",
+											"    path = \"/\";\r",
+											"}\r",
+											"\r",
+											"if(urlObj.query && urlObj.query.count() > 0) {\r",
+											"    // 取得所有 query 參數並按字典排序\r",
+											"    var sortedQuery = urlObj.query.toObject();\r",
+											"    var keys = Object.keys(sortedQuery).sort();\r",
+											"    var queryArr = [];\r",
+											"    keys.forEach(function(key) {\r",
+											"        // 若值為空，只保留 key，否則將值進行 decode\r",
+											"        if(sortedQuery[key] === \"\") {\r",
+											"            queryArr.push(key);\r",
+											"        } else {\r",
+											"            queryArr.push(key + \"=\" + decodeURIComponent(sortedQuery[key]));\r",
+											"        }\r",
+											"    });\r",
+											"    path += \"?\" + queryArr.join(\"&\");\r",
+											"}\r",
+											"\r",
+											"// 5. 組合簽名字串（每個部分以換行符分隔）\r",
+											"var stringToSign = \"x-date: \" + xDate + \"\\n\" +\r",
+											"                   method + \"\\n\" +\r",
+											"                   accept + \"\\n\" +\r",
+											"                   contentType + \"\\n\" +\r",
+											"                   contentMD5 + \"\\n\" +\r",
+											"                   path;\r",
+											"console.log(\"stringToSign:\\n\" + stringToSign);\r",
+											"\r",
+											"// 6. 計算 HMAC-SHA1 簽名並進行 Base64 編碼\r",
+											"var signature = CryptoJS.HmacSHA1(stringToSign, apiAppSecret);\r",
+											"var signatureBase64 = CryptoJS.enc.Base64.stringify(signature);\r",
+											"console.log(\"Signature Base64:\", signatureBase64);\r",
+											"\r",
+											"// 7. 組合 Authorization header\r",
+											"var authHeader = 'hmac id=\"' + apiAppKey + '\", algorithm=\"hmac-sha1\", headers=\"x-date\", signature=\"' + signatureBase64 + '\"';\r",
+											"\r",
+											"// 8. 將 Header 加入請求（注意 Host 處理）\r",
+											"var hostStr = Array.isArray(pm.request.url.host) ? pm.request.url.host.join(\".\") : pm.request.url.host;\r",
+											"pm.request.headers.upsert({ key: \"Host\", value: hostStr });\r",
+											"pm.request.headers.upsert({ key: \"Accept\", value: accept });\r",
+											"pm.request.headers.upsert({ key: \"Content-Type\", value: contentType });\r",
+											"pm.request.headers.upsert({ key: \"x-date\", value: xDate });\r",
+											"pm.request.headers.upsert({ key: \"Authorization\", value: authHeader });\r",
+											"if(method === \"POST\" && contentMD5) {\r",
+											"    pm.request.headers.upsert({ key: \"Content-MD5\", value: contentMD5 });\r",
+											"}\r",
+											"\r",
+											"console.log(\"Final Headers:\", pm.request.headers.toObject());\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://css-open-platform.pudutech.com/pudu-entry/cleanbot-service/v1/api/open/robot/detail?sn=8110H4522050001",
+									"protocol": "https",
+									"host": [
+										"css-open-platform",
+										"pudutech",
+										"com"
+									],
+									"path": [
+										"pudu-entry",
+										"cleanbot-service",
+										"v1",
+										"api",
+										"open",
+										"robot",
+										"detail"
+									],
+									"query": [
+										{
+											"key": "sn",
+											"value": "8110H4522050001"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "對機器人下發指令-充電任務",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const CryptoJS = require(\"crypto-js\");\r",
+											"// 1. 讀取環境變數（或使用預設值）\r",
+											"var apiAppKey = pm.environment.get(\"ApiAppKey\");\r",
+											"var apiAppSecret = pm.environment.get(\"ApiAppSecret\");\r",
+											"\r",
+											"// 2. 設定基本參數\r",
+											"var method = pm.request.method.toUpperCase(); // GET 或 POST\r",
+											"var accept = \"application/json\";\r",
+											"var contentType = \"application/json\";\r",
+											"var xDate = new Date().toUTCString();\r",
+											"var contentMD5 = \"\";\r",
+											"\r",
+											"// 3. 若為 POST 且有 Body，則計算 Content-MD5（GET 請求則留空）\r",
+											"if(method === \"POST\" && pm.request.body && pm.request.body.raw) {\r",
+											"    var body = pm.request.body.raw;\r",
+											"    var md5Hash = CryptoJS.MD5(body);\r",
+											"    contentMD5 = CryptoJS.enc.Base64.stringify(md5Hash);\r",
+											"}\r",
+											"\r",
+											"// 4. 取得 URL 的 path 及排序後的 query string\r",
+											"var urlObj = pm.request.url;\r",
+											"var path = urlObj.getPath(); // 取得 path（不含域名）\r",
+											"if(!path || path === \"\") {\r",
+											"    path = \"/\";\r",
+											"}\r",
+											"\r",
+											"if(urlObj.query && urlObj.query.count() > 0) {\r",
+											"    // 取得所有 query 參數並按字典排序\r",
+											"    var sortedQuery = urlObj.query.toObject();\r",
+											"    var keys = Object.keys(sortedQuery).sort();\r",
+											"    var queryArr = [];\r",
+											"    keys.forEach(function(key) {\r",
+											"        // 若值為空，只保留 key，否則將值進行 decode\r",
+											"        if(sortedQuery[key] === \"\") {\r",
+											"            queryArr.push(key);\r",
+											"        } else {\r",
+											"            queryArr.push(key + \"=\" + decodeURIComponent(sortedQuery[key]));\r",
+											"        }\r",
+											"    });\r",
+											"    path += \"?\" + queryArr.join(\"&\");\r",
+											"}\r",
+											"\r",
+											"// 5. 組合簽名字串（每個部分以換行符分隔）\r",
+											"var stringToSign = \"x-date: \" + xDate + \"\\n\" +\r",
+											"                   method + \"\\n\" +\r",
+											"                   accept + \"\\n\" +\r",
+											"                   contentType + \"\\n\" +\r",
+											"                   contentMD5 + \"\\n\" +\r",
+											"                   path;\r",
+											"console.log(\"stringToSign:\\n\" + stringToSign);\r",
+											"\r",
+											"// 6. 計算 HMAC-SHA1 簽名並進行 Base64 編碼\r",
+											"var signature = CryptoJS.HmacSHA1(stringToSign, apiAppSecret);\r",
+											"var signatureBase64 = CryptoJS.enc.Base64.stringify(signature);\r",
+											"console.log(\"Signature Base64:\", signatureBase64);\r",
+											"\r",
+											"// 7. 組合 Authorization header\r",
+											"var authHeader = 'hmac id=\"' + apiAppKey + '\", algorithm=\"hmac-sha1\", headers=\"x-date\", signature=\"' + signatureBase64 + '\"';\r",
+											"\r",
+											"// 8. 將 Header 加入請求（注意 Host 處理）\r",
+											"var hostStr = Array.isArray(pm.request.url.host) ? pm.request.url.host.join(\".\") : pm.request.url.host;\r",
+											"pm.request.headers.upsert({ key: \"Host\", value: hostStr });\r",
+											"pm.request.headers.upsert({ key: \"Accept\", value: accept });\r",
+											"pm.request.headers.upsert({ key: \"Content-Type\", value: contentType });\r",
+											"pm.request.headers.upsert({ key: \"x-date\", value: xDate });\r",
+											"pm.request.headers.upsert({ key: \"Authorization\", value: authHeader });\r",
+											"if(method === \"POST\" && contentMD5) {\r",
+											"    pm.request.headers.upsert({ key: \"Content-MD5\", value: contentMD5 });\r",
+											"}\r",
+											"\r",
+											"console.log(\"Final Headers:\", pm.request.headers.toObject());\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n   \"sn\":\"8110H4522050001\",\r\n   \"type\":1,\r\n   \"clean\":{\r\n      \"status\":1\r\n   }\r\n}",
+									"options": {
+										"raw": {
+											"language": "text"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://css-open-platform.pudutech.com/pudu-entry//cleanbot-service/v1/api/open/task/exec",
+									"protocol": "https",
+									"host": [
+										"css-open-platform",
+										"pudutech",
+										"com"
+									],
+									"path": [
+										"pudu-entry",
+										"",
+										"cleanbot-service",
+										"v1",
+										"api",
+										"open",
+										"task",
+										"exec"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "遞送線路",
+			"item": [
+				{
+					"name": "機器操作",
+					"item": [
+						{
+							"name": "取得機器可用地圖清單",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const CryptoJS = require(\"crypto-js\");\r",
+											"// 1. 讀取環境變數（或使用預設值）\r",
+											"var apiAppKey = pm.environment.get(\"ApiAppKey\");\r",
+											"var apiAppSecret = pm.environment.get(\"ApiAppSecret\");\r",
+											"\r",
+											"// 2. 設定基本參數\r",
+											"var method = pm.request.method.toUpperCase(); // GET 或 POST\r",
+											"var accept = \"application/json\";\r",
+											"var contentType = \"application/json\";\r",
+											"var xDate = new Date().toUTCString();\r",
+											"var contentMD5 = \"\";\r",
+											"\r",
+											"// 3. 若為 POST 且有 Body，則計算 Content-MD5（GET 請求則留空）\r",
+											"if(method === \"POST\" && pm.request.body && pm.request.body.raw) {\r",
+											"    var body = pm.request.body.raw;\r",
+											"    var md5Hash = CryptoJS.MD5(body);\r",
+											"    contentMD5 = CryptoJS.enc.Base64.stringify(md5Hash);\r",
+											"}\r",
+											"\r",
+											"// 4. 取得 URL 的 path 及排序後的 query string\r",
+											"var urlObj = pm.request.url;\r",
+											"var path = urlObj.getPath(); // 取得 path（不含域名）\r",
+											"if(!path || path === \"\") {\r",
+											"    path = \"/\";\r",
+											"}\r",
+											"\r",
+											"if(urlObj.query && urlObj.query.count() > 0) {\r",
+											"    // 取得所有 query 參數並按字典排序\r",
+											"    var sortedQuery = urlObj.query.toObject();\r",
+											"    var keys = Object.keys(sortedQuery).sort();\r",
+											"    var queryArr = [];\r",
+											"    keys.forEach(function(key) {\r",
+											"        // 若值為空，只保留 key，否則將值進行 decode\r",
+											"        if(sortedQuery[key] === \"\") {\r",
+											"            queryArr.push(key);\r",
+											"        } else {\r",
+											"            queryArr.push(key + \"=\" + decodeURIComponent(sortedQuery[key]));\r",
+											"        }\r",
+											"    });\r",
+											"    path += \"?\" + queryArr.join(\"&\");\r",
+											"}\r",
+											"\r",
+											"// 5. 組合簽名字串（每個部分以換行符分隔）\r",
+											"var stringToSign = \"x-date: \" + xDate + \"\\n\" +\r",
+											"                   method + \"\\n\" +\r",
+											"                   accept + \"\\n\" +\r",
+											"                   contentType + \"\\n\" +\r",
+											"                   contentMD5 + \"\\n\" +\r",
+											"                   path;\r",
+											"console.log(\"stringToSign:\\n\" + stringToSign);\r",
+											"\r",
+											"// 6. 計算 HMAC-SHA1 簽名並進行 Base64 編碼\r",
+											"var signature = CryptoJS.HmacSHA1(stringToSign, apiAppSecret);\r",
+											"var signatureBase64 = CryptoJS.enc.Base64.stringify(signature);\r",
+											"console.log(\"Signature Base64:\", signatureBase64);\r",
+											"\r",
+											"// 7. 組合 Authorization header\r",
+											"var authHeader = 'hmac id=\"' + apiAppKey + '\", algorithm=\"hmac-sha1\", headers=\"x-date\", signature=\"' + signatureBase64 + '\"';\r",
+											"\r",
+											"// 8. 將 Header 加入請求（注意 Host 處理）\r",
+											"var hostStr = Array.isArray(pm.request.url.host) ? pm.request.url.host.join(\".\") : pm.request.url.host;\r",
+											"pm.request.headers.upsert({ key: \"Host\", value: hostStr });\r",
+											"pm.request.headers.upsert({ key: \"Accept\", value: accept });\r",
+											"pm.request.headers.upsert({ key: \"Content-Type\", value: contentType });\r",
+											"pm.request.headers.upsert({ key: \"x-date\", value: xDate });\r",
+											"pm.request.headers.upsert({ key: \"Authorization\", value: authHeader });\r",
+											"if(method === \"POST\" && contentMD5) {\r",
+											"    pm.request.headers.upsert({ key: \"Content-MD5\", value: contentMD5 });\r",
+											"}\r",
+											"\r",
+											"console.log(\"Final Headers:\", pm.request.headers.toObject());\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://css-open-platform.pudutech.com/pudu-entry/map-service/v1/open/list?sn=8PN034124050003",
+									"protocol": "https",
+									"host": [
+										"css-open-platform",
+										"pudutech",
+										"com"
+									],
+									"path": [
+										"pudu-entry",
+										"map-service",
+										"v1",
+										"open",
+										"list"
+									],
+									"query": [
+										{
+											"key": "sn",
+											"value": "8PN034124050003"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "取得機器目前使用的地圖",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const CryptoJS = require(\"crypto-js\");\r",
+											"// 1. 讀取環境變數（或使用預設值）\r",
+											"var apiAppKey = pm.environment.get(\"ApiAppKey\");\r",
+											"var apiAppSecret = pm.environment.get(\"ApiAppSecret\");\r",
+											"\r",
+											"// 2. 設定基本參數\r",
+											"var method = pm.request.method.toUpperCase(); // GET 或 POST\r",
+											"var accept = \"application/json\";\r",
+											"var contentType = \"application/json\";\r",
+											"var xDate = new Date().toUTCString();\r",
+											"var contentMD5 = \"\";\r",
+											"\r",
+											"// 3. 若為 POST 且有 Body，則計算 Content-MD5（GET 請求則留空）\r",
+											"if(method === \"POST\" && pm.request.body && pm.request.body.raw) {\r",
+											"    var body = pm.request.body.raw;\r",
+											"    var md5Hash = CryptoJS.MD5(body);\r",
+											"    contentMD5 = CryptoJS.enc.Base64.stringify(md5Hash);\r",
+											"}\r",
+											"\r",
+											"// 4. 取得 URL 的 path 及排序後的 query string\r",
+											"var urlObj = pm.request.url;\r",
+											"var path = urlObj.getPath(); // 取得 path（不含域名）\r",
+											"if(!path || path === \"\") {\r",
+											"    path = \"/\";\r",
+											"}\r",
+											"\r",
+											"if(urlObj.query && urlObj.query.count() > 0) {\r",
+											"    // 取得所有 query 參數並按字典排序\r",
+											"    var sortedQuery = urlObj.query.toObject();\r",
+											"    var keys = Object.keys(sortedQuery).sort();\r",
+											"    var queryArr = [];\r",
+											"    keys.forEach(function(key) {\r",
+											"        // 若值為空，只保留 key，否則將值進行 decode\r",
+											"        if(sortedQuery[key] === \"\") {\r",
+											"            queryArr.push(key);\r",
+											"        } else {\r",
+											"            queryArr.push(key + \"=\" + decodeURIComponent(sortedQuery[key]));\r",
+											"        }\r",
+											"    });\r",
+											"    path += \"?\" + queryArr.join(\"&\");\r",
+											"}\r",
+											"\r",
+											"// 5. 組合簽名字串（每個部分以換行符分隔）\r",
+											"var stringToSign = \"x-date: \" + xDate + \"\\n\" +\r",
+											"                   method + \"\\n\" +\r",
+											"                   accept + \"\\n\" +\r",
+											"                   contentType + \"\\n\" +\r",
+											"                   contentMD5 + \"\\n\" +\r",
+											"                   path;\r",
+											"console.log(\"stringToSign:\\n\" + stringToSign);\r",
+											"\r",
+											"// 6. 計算 HMAC-SHA1 簽名並進行 Base64 編碼\r",
+											"var signature = CryptoJS.HmacSHA1(stringToSign, apiAppSecret);\r",
+											"var signatureBase64 = CryptoJS.enc.Base64.stringify(signature);\r",
+											"console.log(\"Signature Base64:\", signatureBase64);\r",
+											"\r",
+											"// 7. 組合 Authorization header\r",
+											"var authHeader = 'hmac id=\"' + apiAppKey + '\", algorithm=\"hmac-sha1\", headers=\"x-date\", signature=\"' + signatureBase64 + '\"';\r",
+											"\r",
+											"// 8. 將 Header 加入請求（注意 Host 處理）\r",
+											"var hostStr = Array.isArray(pm.request.url.host) ? pm.request.url.host.join(\".\") : pm.request.url.host;\r",
+											"pm.request.headers.upsert({ key: \"Host\", value: hostStr });\r",
+											"pm.request.headers.upsert({ key: \"Accept\", value: accept });\r",
+											"pm.request.headers.upsert({ key: \"Content-Type\", value: contentType });\r",
+											"pm.request.headers.upsert({ key: \"x-date\", value: xDate });\r",
+											"pm.request.headers.upsert({ key: \"Authorization\", value: authHeader });\r",
+											"if(method === \"POST\" && contentMD5) {\r",
+											"    pm.request.headers.upsert({ key: \"Content-MD5\", value: contentMD5 });\r",
+											"}\r",
+											"\r",
+											"console.log(\"Final Headers:\", pm.request.headers.toObject());\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://css-open-platform.pudutech.com/pudu-entry/map-service/v1/open//current?sn=8PN034124050003&need_element=false",
+									"protocol": "https",
+									"host": [
+										"css-open-platform",
+										"pudutech",
+										"com"
+									],
+									"path": [
+										"pudu-entry",
+										"map-service",
+										"v1",
+										"open",
+										"",
+										"current"
+									],
+									"query": [
+										{
+											"key": "sn",
+											"value": "8PN034124050003"
+										},
+										{
+											"key": "need_element",
+											"value": "false"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "取得機器使用中的地圖內的點位",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const CryptoJS = require(\"crypto-js\");\r",
+											"// 1. 讀取環境變數（或使用預設值）\r",
+											"var apiAppKey = pm.environment.get(\"ApiAppKey\");\r",
+											"var apiAppSecret = pm.environment.get(\"ApiAppSecret\");\r",
+											"\r",
+											"// 2. 設定基本參數\r",
+											"var method = pm.request.method.toUpperCase(); // GET 或 POST\r",
+											"var accept = \"application/json\";\r",
+											"var contentType = \"application/json\";\r",
+											"var xDate = new Date().toUTCString();\r",
+											"var contentMD5 = \"\";\r",
+											"\r",
+											"// 3. 若為 POST 且有 Body，則計算 Content-MD5（GET 請求則留空）\r",
+											"if(method === \"POST\" && pm.request.body && pm.request.body.raw) {\r",
+											"    var body = pm.request.body.raw;\r",
+											"    var md5Hash = CryptoJS.MD5(body);\r",
+											"    contentMD5 = CryptoJS.enc.Base64.stringify(md5Hash);\r",
+											"}\r",
+											"\r",
+											"// 4. 取得 URL 的 path 及排序後的 query string\r",
+											"var urlObj = pm.request.url;\r",
+											"var path = urlObj.getPath(); // 取得 path（不含域名）\r",
+											"if(!path || path === \"\") {\r",
+											"    path = \"/\";\r",
+											"}\r",
+											"\r",
+											"if(urlObj.query && urlObj.query.count() > 0) {\r",
+											"    // 取得所有 query 參數並按字典排序\r",
+											"    var sortedQuery = urlObj.query.toObject();\r",
+											"    var keys = Object.keys(sortedQuery).sort();\r",
+											"    var queryArr = [];\r",
+											"    keys.forEach(function(key) {\r",
+											"        // 若值為空，只保留 key，否則將值進行 decode\r",
+											"        if(sortedQuery[key] === \"\") {\r",
+											"            queryArr.push(key);\r",
+											"        } else {\r",
+											"            queryArr.push(key + \"=\" + decodeURIComponent(sortedQuery[key]));\r",
+											"        }\r",
+											"    });\r",
+											"    path += \"?\" + queryArr.join(\"&\");\r",
+											"}\r",
+											"\r",
+											"// 5. 組合簽名字串（每個部分以換行符分隔）\r",
+											"var stringToSign = \"x-date: \" + xDate + \"\\n\" +\r",
+											"                   method + \"\\n\" +\r",
+											"                   accept + \"\\n\" +\r",
+											"                   contentType + \"\\n\" +\r",
+											"                   contentMD5 + \"\\n\" +\r",
+											"                   path;\r",
+											"console.log(\"stringToSign:\\n\" + stringToSign);\r",
+											"\r",
+											"// 6. 計算 HMAC-SHA1 簽名並進行 Base64 編碼\r",
+											"var signature = CryptoJS.HmacSHA1(stringToSign, apiAppSecret);\r",
+											"var signatureBase64 = CryptoJS.enc.Base64.stringify(signature);\r",
+											"console.log(\"Signature Base64:\", signatureBase64);\r",
+											"\r",
+											"// 7. 組合 Authorization header\r",
+											"var authHeader = 'hmac id=\"' + apiAppKey + '\", algorithm=\"hmac-sha1\", headers=\"x-date\", signature=\"' + signatureBase64 + '\"';\r",
+											"\r",
+											"// 8. 將 Header 加入請求（注意 Host 處理）\r",
+											"var hostStr = Array.isArray(pm.request.url.host) ? pm.request.url.host.join(\".\") : pm.request.url.host;\r",
+											"pm.request.headers.upsert({ key: \"Host\", value: hostStr });\r",
+											"pm.request.headers.upsert({ key: \"Accept\", value: accept });\r",
+											"pm.request.headers.upsert({ key: \"Content-Type\", value: contentType });\r",
+											"pm.request.headers.upsert({ key: \"x-date\", value: xDate });\r",
+											"pm.request.headers.upsert({ key: \"Authorization\", value: authHeader });\r",
+											"if(method === \"POST\" && contentMD5) {\r",
+											"    pm.request.headers.upsert({ key: \"Content-MD5\", value: contentMD5 });\r",
+											"}\r",
+											"\r",
+											"console.log(\"Final Headers:\", pm.request.headers.toObject());\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://css-open-platform.pudutech.com/pudu-entry/map-service/v1/open//point?sn=8PN034124050003&limit=10&offset=0",
+									"protocol": "https",
+									"host": [
+										"css-open-platform",
+										"pudutech",
+										"com"
+									],
+									"path": [
+										"pudu-entry",
+										"map-service",
+										"v1",
+										"open",
+										"",
+										"point"
+									],
+									"query": [
+										{
+											"key": "sn",
+											"value": "8PN034124050003"
+										},
+										{
+											"key": "limit",
+											"value": "10"
+										},
+										{
+											"key": "offset",
+											"value": "0"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "呼叫機器 (Custom Call)",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"/**************************************************************\r",
+											" * Postman Pre-request Script (JavaScript)\r",
+											" *************************************************************/\r",
+											"const CryptoJS = require(\"crypto-js\");\r",
+											"// 若想避免 btoa 警告，可改用： const btoa = require(\"btoa\");\r",
+											"\r",
+											"// 1. 讀取環境變數（或使用預設值）\r",
+											"var apiAppKey = pm.environment.get(\"ApiAppKey\") || \"YOUR_DEFAULT_API_KEY\";\r",
+											"var apiAppSecret = pm.environment.get(\"ApiAppSecret\") || \"YOUR_DEFAULT_SECRET\";\r",
+											"\r",
+											"// 2. 設定基本參數\r",
+											"var method = pm.request.method.toUpperCase(); // GET 或 POST\r",
+											"var accept = \"application/json\";\r",
+											"var contentType = \"application/json\";\r",
+											"var xDate = new Date().toUTCString();  // e.g. \"Wed, 26 Feb 2025 05:08:41 GMT\"\r",
+											"var contentMD5 = \"\";                  // 預設空\r",
+											"\r",
+											"// 3. 若為 POST，動態建立 JSON Body、並計算 Content-MD5（與 Python 行為對齊）\r",
+											"if (method === \"POST\") {\r",
+											"    // (a) 從 Postman Body (raw) 取用文字\r",
+											"    let rawBody = pm.request.body.raw;\r",
+											"    \r",
+											"    \r",
+											"\r",
+											"    if (rawBody.length > 0) {\r",
+											"        // (b) 先算 MD5 => Hex\r",
+											"        let md5HexStr = CryptoJS.MD5(rawBody).toString(CryptoJS.enc.Hex);\r",
+											"        // (c) 再把該 hex 字串做 Base64\r",
+											"        contentMD5 = btoa(md5HexStr);\r",
+											"\r",
+											"        console.log(\"Body (from Postman raw):\", rawBody);\r",
+											"        console.log(\"MD5 Hex → Base64:\", contentMD5);\r",
+											"    }\r",
+											"}\r",
+											"// 4. 取得 URL 的 path 及排序後的 query string（與公網鑑權要求相符）\r",
+											"var urlObj = pm.request.url;\r",
+											"var path = urlObj.getPath();\r",
+											"if (!path || path === \"\") {\r",
+											"    path = \"/\";\r",
+											"}\r",
+											"\r",
+											"// 如果有 query，按字典序組合\r",
+											"if (urlObj.query && urlObj.query.count() > 0) {\r",
+											"    let sortedQuery = urlObj.query.toObject();\r",
+											"    let keys = Object.keys(sortedQuery).sort();\r",
+											"    let queryArr = [];\r",
+											"    keys.forEach(function(key) {\r",
+											"        // 若值為空，只保留 key\r",
+											"        if (sortedQuery[key] === \"\") {\r",
+											"            queryArr.push(key);\r",
+											"        } else {\r",
+											"            // decode 一次 => 保留正常字符\r",
+											"            queryArr.push(key + \"=\" + decodeURIComponent(sortedQuery[key]));\r",
+											"        }\r",
+											"    });\r",
+											"    path += \"?\" + queryArr.join(\"&\");\r",
+											"}\r",
+											"\r",
+											"// 5. 組合簽名字串 (每部分以換行分隔)\r",
+											"var stringToSign =\r",
+											"    \"x-date: \" + xDate + \"\\n\" +\r",
+											"    method + \"\\n\" +\r",
+											"    accept + \"\\n\" +\r",
+											"    contentType + \"\\n\" +\r",
+											"    contentMD5 + \"\\n\" +\r",
+											"    path;\r",
+											"console.log(\"stringToSign:\\n\" + stringToSign);\r",
+											"\r",
+											"// 6. 計算 HMAC-SHA1 並 Base64\r",
+											"var signature = CryptoJS.HmacSHA1(stringToSign, apiAppSecret);\r",
+											"var signatureBase64 = CryptoJS.enc.Base64.stringify(signature);\r",
+											"console.log(\"Signature Base64:\", signatureBase64);\r",
+											"\r",
+											"// 7. 組合 Authorization header\r",
+											"var authHeader = 'hmac id=\"' + apiAppKey + '\", '\r",
+											"               + 'algorithm=\"hmac-sha1\", '\r",
+											"               + 'headers=\"x-date\", '\r",
+											"               + 'signature=\"' + signatureBase64 + '\"';\r",
+											"\r",
+											"// 8. 設定 Header（特別注意 Host）\r",
+											"var hostStr = Array.isArray(pm.request.url.host)\r",
+											"              ? pm.request.url.host.join(\".\")\r",
+											"              : pm.request.url.host;\r",
+											"\r",
+											"pm.request.headers.upsert({ key: \"Host\", value: hostStr });\r",
+											"pm.request.headers.upsert({ key: \"Accept\", value: accept });\r",
+											"pm.request.headers.upsert({ key: \"Content-Type\", value: contentType });\r",
+											"pm.request.headers.upsert({ key: \"x-date\", value: xDate });\r",
+											"pm.request.headers.upsert({ key: \"Authorization\", value: authHeader });\r",
+											"\r",
+											"// 若是 POST 且有 contentMD5，才加 Content-MD5\r",
+											"if (method === \"POST\" && contentMD5) {\r",
+											"    pm.request.headers.upsert({ key: \"Content-MD5\", value: contentMD5 });\r",
+											"}\r",
+											"\r",
+											"// 可在 Console 查看最終 Header、Body\r",
+											"console.log(\"Final Headers:\", pm.request.headers.toObject());\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"sn\": \"8PN034124050003\",\r\n  \"map_name\": \"0#0#和椿臺北2摟\",       \r\n  \"point\": \"ray的家\",        \r\n  \"call_device_name\": \"appKey\" \r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "https://css-open-platform.pudutech.com/pudu-entry/open-platform-service/v1/custom_call",
+									"protocol": "https",
+									"host": [
+										"css-open-platform",
+										"pudutech",
+										"com"
+									],
+									"path": [
+										"pudu-entry",
+										"open-platform-service",
+										"v1",
+										"custom_call"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "healthcheck",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const CryptoJS = require(\"crypto-js\");\r",
+							"// 1. 讀取環境變數（或使用預設值）\r",
+							"var apiAppKey = pm.environment.get(\"ApiAppKey\");\r",
+							"var apiAppSecret = pm.environment.get(\"ApiAppSecret\");\r",
+							"\r",
+							"// 2. 設定基本參數\r",
+							"var method = pm.request.method.toUpperCase(); // GET 或 POST\r",
+							"var accept = \"application/json\";\r",
+							"var contentType = \"application/json\";\r",
+							"var xDate = new Date().toUTCString();\r",
+							"var contentMD5 = \"\";\r",
+							"\r",
+							"// 3. 若為 POST 且有 Body，則計算 Content-MD5（GET 請求則留空）\r",
+							"if(method === \"POST\" && pm.request.body && pm.request.body.raw) {\r",
+							"    var body = pm.request.body.raw;\r",
+							"    var md5Hash = CryptoJS.MD5(body);\r",
+							"    contentMD5 = CryptoJS.enc.Base64.stringify(md5Hash);\r",
+							"}\r",
+							"\r",
+							"// 4. 取得 URL 的 path 及排序後的 query string\r",
+							"var urlObj = pm.request.url;\r",
+							"var path = urlObj.getPath(); // 取得 path（不含域名）\r",
+							"if(!path || path === \"\") {\r",
+							"    path = \"/\";\r",
+							"}\r",
+							"\r",
+							"if(urlObj.query && urlObj.query.count() > 0) {\r",
+							"    // 取得所有 query 參數並按字典排序\r",
+							"    var sortedQuery = urlObj.query.toObject();\r",
+							"    var keys = Object.keys(sortedQuery).sort();\r",
+							"    var queryArr = [];\r",
+							"    keys.forEach(function(key) {\r",
+							"        // 若值為空，只保留 key，否則將值進行 decode\r",
+							"        if(sortedQuery[key] === \"\") {\r",
+							"            queryArr.push(key);\r",
+							"        } else {\r",
+							"            queryArr.push(key + \"=\" + decodeURIComponent(sortedQuery[key]));\r",
+							"        }\r",
+							"    });\r",
+							"    path += \"?\" + queryArr.join(\"&\");\r",
+							"}\r",
+							"\r",
+							"// 5. 組合簽名字串（每個部分以換行符分隔）\r",
+							"var stringToSign = \"x-date: \" + xDate + \"\\n\" +\r",
+							"                   method + \"\\n\" +\r",
+							"                   accept + \"\\n\" +\r",
+							"                   contentType + \"\\n\" +\r",
+							"                   contentMD5 + \"\\n\" +\r",
+							"                   path;\r",
+							"console.log(\"stringToSign:\\n\" + stringToSign);\r",
+							"\r",
+							"// 6. 計算 HMAC-SHA1 簽名並進行 Base64 編碼\r",
+							"var signature = CryptoJS.HmacSHA1(stringToSign, apiAppSecret);\r",
+							"var signatureBase64 = CryptoJS.enc.Base64.stringify(signature);\r",
+							"console.log(\"Signature Base64:\", signatureBase64);\r",
+							"\r",
+							"// 7. 組合 Authorization header\r",
+							"var authHeader = 'hmac id=\"' + apiAppKey + '\", algorithm=\"hmac-sha1\", headers=\"x-date\", signature=\"' + signatureBase64 + '\"';\r",
+							"\r",
+							"// 8. 將 Header 加入請求（注意 Host 處理）\r",
+							"var hostStr = Array.isArray(pm.request.url.host) ? pm.request.url.host.join(\".\") : pm.request.url.host;\r",
+							"pm.request.headers.upsert({ key: \"Host\", value: hostStr });\r",
+							"pm.request.headers.upsert({ key: \"Accept\", value: accept });\r",
+							"pm.request.headers.upsert({ key: \"Content-Type\", value: contentType });\r",
+							"pm.request.headers.upsert({ key: \"x-date\", value: xDate });\r",
+							"pm.request.headers.upsert({ key: \"Authorization\", value: authHeader });\r",
+							"if(method === \"POST\" && contentMD5) {\r",
+							"    pm.request.headers.upsert({ key: \"Content-MD5\", value: contentMD5 });\r",
+							"}\r",
+							"\r",
+							"console.log(\"Final Headers:\", pm.request.headers.toObject());\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://css-open-platform.pudutech.com/pudu-entry/data-open-platform-service/v1/api/healthCheck?b=2&a=%23%23%23%E7%89%B9%E6%AE%8A%E5%AD%97%E7%AC%A6%E6%B5%8B%E8%AF%95&c=3",
+					"protocol": "https",
+					"host": [
+						"css-open-platform",
+						"pudutech",
+						"com"
+					],
+					"path": [
+						"pudu-entry",
+						"data-open-platform-service",
+						"v1",
+						"api",
+						"healthCheck"
+					],
+					"query": [
+						{
+							"key": "b",
+							"value": "2"
+						},
+						{
+							"key": "a",
+							"value": "%23%23%23%E7%89%B9%E6%AE%8A%E5%AD%97%E7%AC%A6%E6%B5%8B%E8%AF%95"
+						},
+						{
+							"key": "c",
+							"value": "3"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "healthcheck post",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"/**************************************************************\r",
+							" * Postman Pre-request Script (JavaScript)\r",
+							" *************************************************************/\r",
+							"const CryptoJS = require(\"crypto-js\");\r",
+							"// 若想避免 btoa 警告，可改用： const btoa = require(\"btoa\");\r",
+							"\r",
+							"// 1. 讀取環境變數（或使用預設值）\r",
+							"var apiAppKey = pm.environment.get(\"ApiAppKey\") || \"YOUR_DEFAULT_API_KEY\";\r",
+							"var apiAppSecret = pm.environment.get(\"ApiAppSecret\") || \"YOUR_DEFAULT_SECRET\";\r",
+							"\r",
+							"// 2. 設定基本參數\r",
+							"var method = pm.request.method.toUpperCase(); // GET 或 POST\r",
+							"var accept = \"application/json\";\r",
+							"var contentType = \"application/json\";\r",
+							"var xDate = new Date().toUTCString();  // e.g. \"Wed, 26 Feb 2025 05:08:41 GMT\"\r",
+							"var contentMD5 = \"\";                  // 預設空\r",
+							"\r",
+							"// 3. 若為 POST，動態建立 JSON Body、並計算 Content-MD5（與 Python 行為對齊）\r",
+							"if (method === \"POST\") {\r",
+							"    // (a) 從 Postman Body (raw) 取用文字\r",
+							"    let rawBody = pm.request.body.raw || \"\";\r",
+							"    \r",
+							"    let cleanedBody = rawBody.trim().replace(/^body\\s*=\\s*/, \"\");\r",
+							"\r",
+							"    if (cleanedBody.length > 0) {\r",
+							"        // (b) 先算 MD5 => Hex\r",
+							"        let md5HexStr = CryptoJS.MD5(cleanedBody).toString(CryptoJS.enc.Hex);\r",
+							"        // (c) 再把該 hex 字串做 Base64\r",
+							"        contentMD5 = btoa(md5HexStr);\r",
+							"\r",
+							"        console.log(\"Body (from Postman raw):\", cleanedBody);\r",
+							"        console.log(\"MD5 Hex → Base64:\", contentMD5);\r",
+							"    }\r",
+							"}\r",
+							"\r",
+							"// 4. 取得 URL 的 path 及排序後的 query string（與公網鑑權要求相符）\r",
+							"var urlObj = pm.request.url;\r",
+							"var path = urlObj.getPath();\r",
+							"if (!path || path === \"\") {\r",
+							"    path = \"/\";\r",
+							"}\r",
+							"\r",
+							"// 如果有 query，按字典序組合\r",
+							"if (urlObj.query && urlObj.query.count() > 0) {\r",
+							"    let sortedQuery = urlObj.query.toObject();\r",
+							"    let keys = Object.keys(sortedQuery).sort();\r",
+							"    let queryArr = [];\r",
+							"    keys.forEach(function(key) {\r",
+							"        // 若值為空，只保留 key\r",
+							"        if (sortedQuery[key] === \"\") {\r",
+							"            queryArr.push(key);\r",
+							"        } else {\r",
+							"            // decode 一次 => 保留正常字符\r",
+							"            queryArr.push(key + \"=\" + decodeURIComponent(sortedQuery[key]));\r",
+							"        }\r",
+							"    });\r",
+							"    path += \"?\" + queryArr.join(\"&\");\r",
+							"}\r",
+							"\r",
+							"// 5. 組合簽名字串 (每部分以換行分隔)\r",
+							"var stringToSign =\r",
+							"    \"x-date: \" + xDate + \"\\n\" +\r",
+							"    method + \"\\n\" +\r",
+							"    accept + \"\\n\" +\r",
+							"    contentType + \"\\n\" +\r",
+							"    contentMD5 + \"\\n\" +\r",
+							"    path;\r",
+							"console.log(\"stringToSign:\\n\" + stringToSign);\r",
+							"\r",
+							"// 6. 計算 HMAC-SHA1 並 Base64\r",
+							"var signature = CryptoJS.HmacSHA1(stringToSign, apiAppSecret);\r",
+							"var signatureBase64 = CryptoJS.enc.Base64.stringify(signature);\r",
+							"console.log(\"Signature Base64:\", signatureBase64);\r",
+							"\r",
+							"// 7. 組合 Authorization header\r",
+							"var authHeader = 'hmac id=\"' + apiAppKey + '\", '\r",
+							"               + 'algorithm=\"hmac-sha1\", '\r",
+							"               + 'headers=\"x-date\", '\r",
+							"               + 'signature=\"' + signatureBase64 + '\"';\r",
+							"\r",
+							"// 8. 設定 Header（特別注意 Host）\r",
+							"var hostStr = Array.isArray(pm.request.url.host)\r",
+							"              ? pm.request.url.host.join(\".\")\r",
+							"              : pm.request.url.host;\r",
+							"\r",
+							"pm.request.headers.upsert({ key: \"Host\", value: hostStr });\r",
+							"pm.request.headers.upsert({ key: \"Accept\", value: accept });\r",
+							"pm.request.headers.upsert({ key: \"Content-Type\", value: contentType });\r",
+							"pm.request.headers.upsert({ key: \"x-date\", value: xDate });\r",
+							"pm.request.headers.upsert({ key: \"Authorization\", value: authHeader });\r",
+							"\r",
+							"// 若是 POST 且有 contentMD5，才加 Content-MD5\r",
+							"if (method === \"POST\" && contentMD5) {\r",
+							"    pm.request.headers.upsert({ key: \"Content-MD5\", value: contentMD5 });\r",
+							"}\r",
+							"\r",
+							"// 可在 Console 查看最終 Header、Body\r",
+							"console.log(\"Final Headers:\", pm.request.headers.toObject());\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "body = {\r\n    \"b\": \"2\",\r\n    \"a\": \"###特殊字符测试\",\r\n    \"c\": \"3\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://css-open-platform.pudutech.com/pudu-entry/data-open-platform-service/v1/api/healthCheck",
+					"protocol": "https",
+					"host": [
+						"css-open-platform",
+						"pudutech",
+						"com"
+					],
+					"path": [
+						"pudu-entry",
+						"data-open-platform-service",
+						"v1",
+						"api",
+						"healthCheck"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
